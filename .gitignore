@@ -1,0 +1,11 @@
+# Created by .gitignore support plugin (hsz.mobi)
+### Scala template
+*.class
+*.log
+target/
+project/
+
+# IDE: IDEA
+.idea/
+out/
+*.iml
