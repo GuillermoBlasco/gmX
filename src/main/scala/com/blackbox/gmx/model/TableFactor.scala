@@ -5,7 +5,7 @@ import com.blackbox.gmx.model.api._
 /**
  * Created by guillermoblascojimenez on 16/09/14.
  */
-class TableFactor(idx: Long, variablesx: Seq[Variable], valuesx: Seq[Double]) extends MultiVariableFactor(idx, variablesx) {
+class TableFactor(variablesx: Seq[Variable], valuesx: Seq[Double]) extends MultiVariableFactor(variablesx) {
 
   val values: Seq[Double] = valuesx
 

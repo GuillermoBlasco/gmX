@@ -16,4 +16,8 @@ class GMX {
     graph.vertices.filter({case (id: Long, vof:VariableOrFactor) => vof.isFactor}).count()
   }
 
+  def setEvidence(graph: Graph[VariableOrFactor, Nothing], variableNodeId: Long, evidence: Int) : Graph[VariableOrFactor, Nothing] = {
+    throw new UnsupportedOperationException();
+  }
+
 }

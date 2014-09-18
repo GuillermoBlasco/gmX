@@ -17,27 +17,23 @@ object Sprinkler {
     val sc: SparkContext = new SparkContext(conf)
 
 
-    val cloudy    = new NamedVariable(1L, 2, "CLOUDY")
-    val sprinkler = new NamedVariable(2L, 2, "SPRINKLER")
-    val rain      = new NamedVariable(3L, 2, "RAIN")
-    val wetGrass  = new NamedVariable(4L, 2, "WET_GRASS")
+    val cloudy    = new NamedVariable(2, "CLOUDY")
+    val sprinkler = new NamedVariable(2, "SPRINKLER")
+    val rain      = new NamedVariable(2, "RAIN")
+    val wetGrass  = new NamedVariable(2, "WET_GRASS")
     val cloudyFactor = new SingleVariableFactor(
-      1L,
       cloudy,
       Array(0.5, 0.5)
     )
     val sprinklerGivenCloudyFactor = new TableFactor(
-      2L,
       Array(sprinkler, cloudy),
       Array(0.5, 0.5, 0.9, 0.1)
     )
     val rainGivenCloudyFactor = new TableFactor(
-      3L,
       Array(rain, cloudy),
       Array(0.8, 0.2, 0.2, 0.8)
     )
     val wetGrassGivenSprinklerAndRainFactor = new TableFactor(
-      4L,
       Array(wetGrass, sprinkler, rain),
       Array(1, 0, 0.1, 0.9, 0.1, 0.9, 0.01, 0.99)
     )

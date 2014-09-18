@@ -5,7 +5,7 @@ import com.blackbox.gmx.model.api._
 /**
  * Created by guillermoblascojimenez on 16/09/14.
  */
-class SingleVariableFactor(idx: Long, variablex: Variable, valuesx: Seq[Double]) extends MultiVariableFactor(idx, Array[Variable](variablex)) {
+class SingleVariableFactor(variablex: Variable, valuesx: Seq[Double]) extends MultiVariableFactor(Array[Variable](variablex)) {
 
   val values: Seq[Double] = valuesx
 

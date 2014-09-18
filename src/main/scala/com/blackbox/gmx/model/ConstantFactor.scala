@@ -4,7 +4,7 @@ import com.blackbox.gmx.model.api._
 /**
  * Created by guillermoblascojimenez on 17/09/14.
  */
-class ConstantFactor(idx: Long, variablesx: Seq[Variable], val valuex: Double) extends MultiVariableFactor(idx, variablesx) {
+class ConstantFactor(variablesx: Seq[Variable], val valuex: Double) extends MultiVariableFactor(variablesx) {
 
   override def value(indexs: Seq[Int]): Double = valuex
 }
