@@ -45,10 +45,10 @@ object Sprinkler {
 
     val factors: Set[Factor] = Set[Factor](cloudyFactor, sprinklerGivenCloudyFactor, rainGivenCloudyFactor, wetGrassGivenSprinklerAndRainFactor)
     val clusterGraph: ClusterGraph = ClusterGraph(factors, sc)
-    printf("Cluster Graph built")
+    println("Cluster Graph built")
     val clusterNumber = clusterGraph.graph.vertices.count()
     assert(clusterNumber == 7)
-    printf(s"Cluster with $clusterNumber clusters")
+    println(s"Cluster with $clusterNumber clusters")
   }
 
 }
