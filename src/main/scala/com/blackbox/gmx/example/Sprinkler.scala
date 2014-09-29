@@ -13,6 +13,20 @@ object Sprinkler {
     val conf = new SparkConf().setAppName("sprinkler")
     val sc: SparkContext = new SparkContext(conf)
 
+    val clusterGraph: ClusterGraph = buildGraph(sc)
+
+    println("Cluster Graph built")
+    val clusterNumber = clusterGraph.graph.vertices.count()
+    assert(clusterNumber == 7)
+    println(s"Cluster with $clusterNumber clusters")
+    val calibrated = clusterGraph.calibrate()
+    println(s"Calibrated")
+    // print the posteriors
+    val factors = calibrated.factors
+    factors foreach ((factor: Factor) => println(factor.toString))
+  }
+
+  def buildGraph(sc : SparkContext) : ClusterGraph = {
     // VARIABLES
     val cloudy    = Variable[String]("CLOUDY", 2)
     val sprinkler = Variable[String]("SPRINKLER", 2)
@@ -44,11 +58,7 @@ object Sprinkler {
     wetGrassGivenSprinklerAndRainFactor(Map(wetGrass -> 1, sprinkler -> 1, rain -> 1)) = 0.99
 
     val factors: Set[Factor] = Set[Factor](cloudyFactor, sprinklerGivenCloudyFactor, rainGivenCloudyFactor, wetGrassGivenSprinklerAndRainFactor)
-    val clusterGraph: ClusterGraph = ClusterGraph(factors, sc)
-    println("Cluster Graph built")
-    val clusterNumber = clusterGraph.graph.vertices.count()
-    assert(clusterNumber == 7)
-    println(s"Cluster with $clusterNumber clusters")
+    ClusterGraph(factors, sc)
   }
 
 }

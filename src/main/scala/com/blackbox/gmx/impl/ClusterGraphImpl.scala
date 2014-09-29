@@ -19,8 +19,8 @@ class ClusterGraphImpl(
   override val variables: Set[Variable] = graph.edges.aggregate(mutable.Set[Variable]())((s,e) => s ++ e.attr, (s1, s2) => s1 ++ s2).toSet
 
   override def calibrate(maxIters :Int = 10): ClusterGraph = {
-    val calibrated = graph.pregel[Factor](null, maxIters)(
-      (vertexId, factor, delta) => { if (delta != null) (factor * delta).normalized()  else factor},
+    val calibrated = graph.pregel[Factor](Factor.emptyFactor(1.0), maxIters)(
+      (vertexId, factor, delta) => (factor * delta).normalized(),
       (triplet) => Iterator((triplet.dstId, triplet.srcAttr.marginal(triplet.attr))),
       (delta1, delta2) => delta1 * delta2
     )

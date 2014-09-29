@@ -1,7 +1,7 @@
 package com.blackbox.gmx.example
 
 import com.blackbox.gmx.ClusterGraph
-import com.blackbox.gmx.model.{FactorTable, Factor, Variable}
+import com.blackbox.gmx.model.{ArrayFactor, Factor, Variable}
 import org.apache.spark.{SparkContext, SparkConf}
 
 /**
@@ -13,6 +13,20 @@ object Student {
     val conf = new SparkConf().setAppName("student")
     val sc: SparkContext = new SparkContext(conf)
 
+    val clusterGraph = buildGraph(sc)
+
+    println("Cluster Graph built")
+    val clusterNumber = clusterGraph.graph.vertices.count()
+    assert(clusterNumber == 8)
+    println(s"Cluster with $clusterNumber clusters")
+    val calibrated = clusterGraph.calibrate()
+    println(s"Calibrated")
+    // print the posteriors
+    val factors = calibrated.factors
+    factors foreach ((factor: Factor) => println(factor.toString))
+  }
+
+  def buildGraph(sc: SparkContext) : ClusterGraph = {
     // VARIABLES
     val difficulty    = Variable[String]("DIFFICULTY", 2)
     val intelligence = Variable[String]("INTELLIGENCE", 2)
@@ -53,23 +67,7 @@ object Student {
     letterGivenGrade(Map(letter -> 0, grade -> 2)) = 0.99
     letterGivenGrade(Map(letter -> 1, grade -> 2)) = 0.01
 
-    var factors: Set[Factor] = Set[Factor](difficultyFactor, intelligenceFactor, satGivenIntelligence, gradeGivenDifficultyIntelligence, letterGivenGrade)
-    val clusterGraph: ClusterGraph = ClusterGraph(factors, sc)
-    println("Cluster Graph built")
-    val clusterNumber = clusterGraph.graph.vertices.count()
-    assert(clusterNumber == 8)
-    println(s"Cluster with $clusterNumber clusters")
-    val calibrated = clusterGraph.calibrate()
-    println(s"Calibrated")
-    // print the posteriors
-    factors = calibrated.factors
-    factors foreach ((factor: Factor) => {
-      println(s"Factor scope ${factor.scope()}")
-      print("values[")
-      factor.asInstanceOf[FactorTable].values foreach ((v) => {
-        print(s"$v,")
-      })
-      println("]")
-    })
+    val factors: Set[Factor] = Set[Factor](difficultyFactor, intelligenceFactor, satGivenIntelligence, gradeGivenDifficultyIntelligence, letterGivenGrade)
+    ClusterGraph(factors, sc)
   }
 }

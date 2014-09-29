@@ -23,6 +23,7 @@ trait Factor extends Serializable {
 object Factor {
   def apply(variable: Variable) : Factor = apply(Set[Variable](variable))
   def apply(variables: Variable*) : Factor = apply(variables.toSet)
-  def apply(variables: Set[Variable]) : Factor = FactorTable(variables)
-  def constantFactor(variables: Set[Variable], constant: Double) : Factor = FactorTable(variables, constant)
+  def apply(variables: Set[Variable]) : Factor = ArrayFactor(variables)
+  def constantFactor(variables: Set[Variable], constant: Double) : Factor = if (variables.isEmpty) emptyFactor(constant) else ArrayFactor(variables, constant)
+  def emptyFactor(constant: Double) : Factor = new EmptyFactor(constant)
 }

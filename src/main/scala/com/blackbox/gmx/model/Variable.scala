@@ -9,7 +9,7 @@ trait Variable extends Serializable {
 
   def cardinality: Int
 
-  override def toString : String = s"Variable $id with scope $cardinality"
+  override def toString : String = s"$id (card=$cardinality)"
 
   override def equals(any: Any) : Boolean = {
     any match {

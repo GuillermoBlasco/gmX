@@ -6,28 +6,31 @@ import scala.util.control.Breaks._
 /**
  * Created by guillermoblascojimenez on 29/09/14.
  */
-class LogFactorTable( override val scope : immutable.Set[Variable],
+class ArrayLogFactor( override val scope : immutable.Set[Variable],
                       override protected val strides: immutable.Map[Variable, Int],
                       override protected val values: Array[Double]
-                      ) extends AbstractFactorTable(scope, strides, values) with LogFactor {
+                      ) extends AbstractArrayFactor(scope, strides, values) with LogFactor {
 
   override def +(factor: LogFactor): LogFactor = {
     factor match {
-      case phi2: LogFactorTable =>
-        LogFactorTable.product(this, phi2)
+      case phi2: ArrayLogFactor =>
+        ArrayLogFactor.product(this, phi2)
+      case phi2: EmptyFactor =>
+        this + phi2.value
       case _ =>
         throw new UnsupportedOperationException(s"Can not multiply factor of class ${factor.getClass} with this factor of class ${this.getClass}")
     }
   }
 
-  override def +(c: Double): LogFactor = new LogFactorTable(scope, strides, values.transform((v : Double) => v + c).toArray)
-  override def -(c: Double): LogFactor = new LogFactorTable(scope, strides, values.transform((v : Double) => v - c).toArray)
-  override def exp(): Factor = new FactorTable(scope, strides, values.transform((v: Double) => Math.exp(v)).toArray)
+  override def +(c: Double): LogFactor = new ArrayLogFactor(scope, strides, values.transform((v : Double) => v + c).toArray)
+  override def -(c: Double): LogFactor = new ArrayLogFactor(scope, strides, values.transform((v : Double) => v - c).toArray)
+  override def exp(): Factor = new ArrayFactor(scope, strides, values.transform((v: Double) => Math.exp(v)).toArray)
+  override def toString : String = s"ArrayLogFactor [${super.toString}]"
 }
-protected object LogFactorTable {
+protected object ArrayLogFactor {
   private val op : (Double, Double) => Double = (a, b) => a+b
 
-  def apply(variables: Set[Variable], defaultValue: Double = 0.0) : LogFactorTable = {
+  def apply(variables: Set[Variable], defaultValue: Double = 0.0) : ArrayLogFactor = {
     val size = variables.foldLeft(1)((z,v) => z * v.cardinality)
     val strides: mutable.HashMap[Variable, Int] = mutable.HashMap[Variable, Int]()
     var stride = 1
@@ -37,17 +40,17 @@ protected object LogFactorTable {
       strides(v) = stride
       stride = stride * v.cardinality
     }
-    new LogFactorTable(variables, strides.toMap, Array.fill(size)(defaultValue))
+    new ArrayLogFactor(variables, strides.toMap, Array.fill(size)(defaultValue))
   }
 
   /*
    * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 10.A.1 (page 359)
    */
-  def product(phi1: LogFactorTable, phi2: LogFactorTable) : LogFactorTable = {
+  def product(phi1: ArrayLogFactor, phi2: ArrayLogFactor) : ArrayLogFactor = {
     val X1 = phi1.scope
     val X2 = phi2.scope
     val X: Set[Variable] = X1 ++ X2
-    val psi: LogFactorTable = LogFactorTable(X)
-    AbstractFactorTable.product(phi1, phi2, psi, op)
+    val psi: ArrayLogFactor = ArrayLogFactor(X)
+    AbstractArrayFactor.product(phi1, phi2, psi, op)
   }
 }

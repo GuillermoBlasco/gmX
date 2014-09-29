@@ -6,7 +6,7 @@ import scala.util.control.Breaks._
 /**
  * Created by guillermoblascojimenez on 29/09/14.
  */
-class AbstractFactorTable(
+class AbstractArrayFactor(
                            val scope : immutable.Set[Variable],
                            protected val strides: immutable.Map[Variable, Int],
                            protected val values: Array[Double]
@@ -22,23 +22,34 @@ class AbstractFactorTable(
   /*
    * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Box 10.A (page 358)
    */
-  protected def indexOfAssignment(assignment: Map[Variable, Int]) : Int = assignment.foldLeft(0)({case (z, (v, i)) => z + strides.getOrElse(v, 0) * i})
+  protected def indexOfAssignment(assignment: Map[Variable, Int]) : Int = {
+    assert(scope.diff(assignment.keySet).isEmpty)
+    assignment.foldLeft(0)({case (z, (v, i)) => z + strides.getOrElse(v, 0) * i})
+  }
 
   /*
    * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Box 10.A (page 359)
    */
-  protected def assignmentOfIndex(index: Int) : Map[Variable, Int] = strides.transform((v, s) => (index / s) % v.cardinality).toMap
+  protected def assignmentOfIndex(index: Int) : Map[Variable, Int] = {
+    assert(index >= 0 && index < size)
+    strides.transform((v, s) => (index / s) % v.cardinality).toMap
+  }
 
-
+  override def toString: String = s"AbstractArrayFactor with scope {${scope.mkString(",")}} and values {${values.mkString(",")}}"
 }
-object AbstractFactorTable {
+object AbstractArrayFactor {
   /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 10.A.1 (page 359)
  */
-  def product[I <: AbstractFactorTable](phi1: I, phi2: I, psi: I, op: (Double, Double) => Double) : I = {
+  def product[I <: AbstractArrayFactor](phi1: I, phi2: I, psi: I, op: (Double, Double) => Double) : I = {
+    assert(phi1 != null)
+    assert(phi2 != null)
+    assert(psi != null)
+    assert(op != null)
     val X1 = phi1.scope
     val X2 = phi2.scope
     val X: Set[Variable] = X1 ++ X2
+    assert(X.equals(psi.scope))
     val assignment: mutable.Map[Variable, Int] = mutable.HashMap[Variable, Int]()
     for (v <- X) {
       assignment(v) = 0
