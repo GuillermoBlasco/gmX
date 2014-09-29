@@ -19,4 +19,7 @@ object Factor {
   def apply(variables: Set[Variable]) : Factor = {
     TableFactor(variables)
   }
+  def constantFactor(variables: Set[Variable], constant: Double) : Factor = {
+    TableFactor(variables, constant)
+  }
 }

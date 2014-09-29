@@ -40,7 +40,7 @@ protected class TableFactor(
   override def /(c: Double): Factor = new TableFactor(scope, strides, values.transform((v : Double) => v / c).toArray)
 }
 protected object TableFactor {
-  def apply(variables: Set[Variable]) : TableFactor = {
+  def apply(variables: Set[Variable], defaultValue: Double = 0.0) : TableFactor = {
     val size = variables.foldLeft(1)((z,v) => z * v.cardinality)
     val strides: mutable.HashMap[Variable, Int] = mutable.HashMap[Variable, Int]()
     var stride = 1
@@ -50,7 +50,7 @@ protected object TableFactor {
       strides(v) = stride
       stride = stride * v.cardinality
     }
-    new TableFactor(variables, strides.toMap, new Array(size))
+    new TableFactor(variables, strides.toMap, Array.fill(size)(defaultValue))
   }
 
   /*
