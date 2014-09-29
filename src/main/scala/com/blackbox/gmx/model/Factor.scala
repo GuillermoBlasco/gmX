@@ -6,10 +6,11 @@ package com.blackbox.gmx.model
 trait Factor extends Serializable {
 
   def scope() : Set[Variable]
-  def size() : Int = scope().foldLeft(1)((z,v) => z * v.cardinality)
+  def size() : Int
   def * (factor: Factor) : Factor
   def * (c: Double) : Factor
   def / (c: Double) : Factor
+  def log() : LogFactor
 
   def update(assignment : Map[Variable, Int], value: Double)
   def apply(assignment : Map[Variable, Int]) : Double
@@ -18,6 +19,6 @@ trait Factor extends Serializable {
 object Factor {
   def apply(variable: Variable) : Factor = apply(Set[Variable](variable))
   def apply(variables: Variable*) : Factor = apply(variables.toSet)
-  def apply(variables: Set[Variable]) : Factor = TableFactor(variables)
-  def constantFactor(variables: Set[Variable], constant: Double) : Factor = TableFactor(variables, constant)
+  def apply(variables: Set[Variable]) : Factor = FactorTable(variables)
+  def constantFactor(variables: Set[Variable], constant: Double) : Factor = FactorTable(variables, constant)
 }

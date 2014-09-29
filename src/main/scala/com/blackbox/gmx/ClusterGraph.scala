@@ -4,7 +4,6 @@ import com.blackbox.gmx.impl.ClusterGraphImpl
 import com.blackbox.gmx.model._
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
-import org.apache.spark.rdd.RDD
 
 /**
  * Created by guillermoblascojimenez on 27/09/14.
@@ -16,6 +15,7 @@ abstract class ClusterGraph protected () extends Serializable {
   val variables : Set[Variable]
 
   def calibrate() : ClusterGraph
+  def countClusters() : Long
 
 }
 object ClusterGraph {
