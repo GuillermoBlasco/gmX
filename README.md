@@ -17,3 +17,4 @@ Execute:
 Ensure that `SPARK_HOME` is set to spark home. Execute in console:
 
     $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.Sprinkler" --master local[4] target/scala-2.10/gmx_2.10-1.0.jar
+    $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.Student" --master local[4] target/scala-2.10/gmx_2.10-1.0.jar

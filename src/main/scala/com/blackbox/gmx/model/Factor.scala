@@ -11,11 +11,13 @@ trait Factor extends Serializable {
   def * (c: Double) : Factor
   def / (c: Double) : Factor
   def log() : LogFactor
-  def marginal(variable: Variable) : Factor
   def marginal(variables: Set[Variable]) : Factor
+  def marginalize(variables: Set[Variable]) : Factor
 
   def update(assignment : Map[Variable, Int], value: Double)
   def apply(assignment : Map[Variable, Int]) : Double
+  def z() : Double
+  def normalized() : Factor
 
 }
 object Factor {

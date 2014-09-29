@@ -5,10 +5,10 @@ import scala.collection.{mutable, immutable}
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Box 10.A (page 358)
  */
-protected class FactorTable(
+class FactorTable(
                              override val scope : immutable.Set[Variable],
-                             override protected val strides: immutable.Map[Variable, Int],
-                             override protected val values: Array[Double]
+                             override val strides: immutable.Map[Variable, Int],
+                             override val values: Array[Double]
                              ) extends AbstractFactorTable(scope, strides, values) with Factor {
 
 
@@ -17,18 +17,21 @@ protected class FactorTable(
       case phi2: FactorTable =>
         FactorTable.product(this, phi2)
       case _ =>
-        throw new UnsupportedOperationException
+        throw new UnsupportedOperationException(s"Can not multiply factor of class ${factor.getClass} with this factor of class ${this.getClass}")
     }
   }
 
   override def *(c: Double): Factor = new FactorTable(scope, strides, values.transform((v : Double) => v * c).toArray)
+
   override def /(c: Double): Factor = new FactorTable(scope, strides, values.transform((v : Double) => v / c).toArray)
 
   override def log(): LogFactor = new LogFactorTable(scope, strides, values.transform((v: Double) => Math.log(v)).toArray)
 
-  override def marginal(variable: Variable): Factor = marginal(Set(variable))
+  override def z() : Double = values.aggregate[Double](0.0)((a,b) => a+b, (a,b) => a+b)
 
-  override def marginal(variables: Set[Variable]): Factor = {
+  override def normalized() : Factor = this / z()
+
+  override def marginalize(variables: Set[Variable]): Factor = {
     val X: Set[Variable] = scope diff variables
     val phi: FactorTable = FactorTable(X, 0.0)
     for (i <- 0 until this.size) {
@@ -37,6 +40,7 @@ protected class FactorTable(
     }
     phi
   }
+  override def marginal(variables: Set[Variable]) : Factor = marginalize(scope diff variables)
 }
 protected object FactorTable {
   private val op : (Double, Double) => Double = (a, b) => a * b

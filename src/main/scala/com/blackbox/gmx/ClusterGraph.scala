@@ -14,7 +14,7 @@ abstract class ClusterGraph protected () extends Serializable {
   val factors : Set[Factor]
   val variables : Set[Variable]
 
-  def calibrate() : ClusterGraph
+  def calibrate(maxIters:Int = 10) : ClusterGraph
   def countClusters() : Long
 
 }

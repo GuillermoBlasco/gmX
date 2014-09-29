@@ -1,7 +1,7 @@
 package com.blackbox.gmx.example
 
 import com.blackbox.gmx.ClusterGraph
-import com.blackbox.gmx.model.{Factor, Variable}
+import com.blackbox.gmx.model.{FactorTable, Factor, Variable}
 import org.apache.spark.{SparkContext, SparkConf}
 
 /**
@@ -53,11 +53,23 @@ object Student {
     letterGivenGrade(Map(letter -> 0, grade -> 2)) = 0.99
     letterGivenGrade(Map(letter -> 1, grade -> 2)) = 0.01
 
-    val factors: Set[Factor] = Set[Factor](difficultyFactor, intelligenceFactor, satGivenIntelligence, gradeGivenDifficultyIntelligence, letterGivenGrade)
+    var factors: Set[Factor] = Set[Factor](difficultyFactor, intelligenceFactor, satGivenIntelligence, gradeGivenDifficultyIntelligence, letterGivenGrade)
     val clusterGraph: ClusterGraph = ClusterGraph(factors, sc)
     println("Cluster Graph built")
     val clusterNumber = clusterGraph.graph.vertices.count()
     assert(clusterNumber == 8)
     println(s"Cluster with $clusterNumber clusters")
+    val calibrated = clusterGraph.calibrate()
+    println(s"Calibrated")
+    // print the posteriors
+    factors = calibrated.factors
+    factors foreach ((factor: Factor) => {
+      println(s"Factor scope ${factor.scope()}")
+      print("values[")
+      factor.asInstanceOf[FactorTable].values foreach ((v) => {
+        print(s"$v,")
+      })
+      println("]")
+    })
   }
 }

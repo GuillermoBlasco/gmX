@@ -16,7 +16,7 @@ class LogFactorTable( override val scope : immutable.Set[Variable],
       case phi2: LogFactorTable =>
         LogFactorTable.product(this, phi2)
       case _ =>
-        throw new UnsupportedOperationException
+        throw new UnsupportedOperationException(s"Can not multiply factor of class ${factor.getClass} with this factor of class ${this.getClass}")
     }
   }
 

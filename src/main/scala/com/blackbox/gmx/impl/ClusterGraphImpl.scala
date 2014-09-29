@@ -13,15 +13,24 @@ import org.apache.spark.rdd.RDD
 class ClusterGraphImpl(
                         override val graph: Graph[Factor,Set[Variable]]
                         ) extends ClusterGraph {
+
   override val factors: Set[Factor] = graph.vertices.aggregate(mutable.Set[Factor]())((s, v) => s + v._2, (s1, s2) => s1 ++ s2).toSet
+
   override val variables: Set[Variable] = graph.edges.aggregate(mutable.Set[Variable]())((s,e) => s ++ e.attr, (s1, s2) => s1 ++ s2).toSet
 
-  override def calibrate(): ClusterGraph = {
-    null
+  override def calibrate(maxIters :Int = 10): ClusterGraph = {
+    val calibrated = graph.pregel[Factor](null, maxIters)(
+      (vertexId, factor, delta) => { if (delta != null) (factor * delta).normalized()  else factor},
+      (triplet) => Iterator((triplet.dstId, triplet.srcAttr.marginal(triplet.attr))),
+      (delta1, delta2) => delta1 * delta2
+    )
+    new ClusterGraphImpl(calibrated)
   }
+
   override def countClusters() : Long = {
     graph.vertices.count()
   }
+
 }
 object ClusterGraphImpl {
   /*
