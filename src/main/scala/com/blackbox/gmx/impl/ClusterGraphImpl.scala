@@ -10,9 +10,15 @@ import org.apache.spark.rdd.RDD
 /**
  * Created by guillermoblascojimenez on 29/09/14.
  */
-class ClusterGraphImpl(val graph: Graph[Factor,Set[Variable]]) extends ClusterGraph {
+class ClusterGraphImpl(
+                        override val graph: Graph[Factor,Set[Variable]]
+                        ) extends ClusterGraph {
   override val factors: Set[Factor] = graph.vertices.aggregate(mutable.Set[Factor]())((s, v) => s + v._2, (s1, s2) => s1 ++ s2).toSet
   override val variables: Set[Variable] = graph.edges.aggregate(mutable.Set[Variable]())((s,e) => s ++ e.attr, (s1, s2) => s1 ++ s2).toSet
+
+  override def calibrate(): ClusterGraph = {
+    null
+  }
 }
 object ClusterGraphImpl {
   /*

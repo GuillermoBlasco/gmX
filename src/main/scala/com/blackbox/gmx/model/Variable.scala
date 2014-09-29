@@ -3,9 +3,9 @@ package com.blackbox.gmx.model
 /**
  * Created by guillermoblascojimenez on 16/09/14.
  */
-trait Variable[I >: Serializable] extends Serializable {
+trait Variable extends Serializable {
 
-  def id: I
+  def id: java.io.Serializable
 
   def cardinality: Int
 
@@ -24,7 +24,7 @@ trait Variable[I >: Serializable] extends Serializable {
 
 }
 object Variable {
-  def apply[I >: Serializable](_id: I, _size: Int): Variable[I] = {
-    new VariableImpl[I](_id, _size)
+  def apply[I <: java.io.Serializable](_id: I, _size: Int): Variable = {
+    new VariableImpl(_id, _size)
   }
 }
