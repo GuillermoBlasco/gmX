@@ -22,7 +22,7 @@ class AbstractFactorTable(
   /*
    * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Box 10.A (page 358)
    */
-  protected def indexOfAssignment(assignment: Map[Variable, Int]) : Int = assignment.foldLeft(0)({case (z, (v, i)) => z + strides(v) * i})
+  protected def indexOfAssignment(assignment: Map[Variable, Int]) : Int = assignment.foldLeft(0)({case (z, (v, i)) => z + strides.getOrElse(v, 0) * i})
 
   /*
    * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Box 10.A (page 359)

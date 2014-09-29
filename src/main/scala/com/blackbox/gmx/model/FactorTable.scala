@@ -25,6 +25,18 @@ protected class FactorTable(
   override def /(c: Double): Factor = new FactorTable(scope, strides, values.transform((v : Double) => v / c).toArray)
 
   override def log(): LogFactor = new LogFactorTable(scope, strides, values.transform((v: Double) => Math.log(v)).toArray)
+
+  override def marginal(variable: Variable): Factor = marginal(Set(variable))
+
+  override def marginal(variables: Set[Variable]): Factor = {
+    val X: Set[Variable] = scope diff variables
+    val phi: FactorTable = FactorTable(X, 0.0)
+    for (i <- 0 until this.size) {
+      val assignment = this.assignmentOfIndex(i)
+      phi(assignment) = phi(assignment) + this.values(i)
+    }
+    phi
+  }
 }
 protected object FactorTable {
   private val op : (Double, Double) => Double = (a, b) => a * b
