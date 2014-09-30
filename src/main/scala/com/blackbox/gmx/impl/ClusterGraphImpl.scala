@@ -8,7 +8,10 @@ import org.apache.spark.graphx._
 import org.apache.spark.rdd.RDD
 
 /**
- * Created by guillermoblascojimenez on 29/09/14.
+ * Implements a cluster graph structure where vertex are set of variables and a factor with this scope
+ * and edges the intersection of connected vertex.
+ *
+ * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Definition 10.1 (page 346)
  */
 class ClusterGraphImpl(
                         override val graph: Graph[Factor,Set[Variable]]
@@ -18,10 +21,19 @@ class ClusterGraphImpl(
 
   override val variables: Set[Variable] = graph.edges.aggregate(mutable.Set[Variable]())((s,e) => s ++ e.attr, (s1, s2) => s1 ++ s2).toSet
 
+  /*
+   * Belief propagation
+   *
+   * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 11.1 (page 397)
+   */
   override def calibrate(maxIters :Int = 10): ClusterGraph = {
+    //Initial message: 1.0
     val calibrated = graph.pregel[Factor](Factor.emptyFactor(1.0), maxIters)(
+      // message processing: multiply factor and delta and normalize
       (vertexId, factor, delta) => (factor * delta).normalized(),
+      // message passing: project the factor to the shared variables
       (triplet) => Iterator((triplet.dstId, triplet.srcAttr.marginal(triplet.attr))),
+      // message aggregation: multiply deltas
       (delta1, delta2) => delta1 * delta2
     )
     new ClusterGraphImpl(calibrated)

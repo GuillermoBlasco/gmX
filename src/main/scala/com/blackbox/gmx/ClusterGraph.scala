@@ -6,19 +6,37 @@ import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
 
 /**
- * Created by guillermoblascojimenez on 27/09/14.
+ * Represents a cluster graph structure where vertex are set of variables and a factor with this scope
+ * and edges the intersection of connected vertex.
+ *
+ * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Definition 10.1 (page 346)
  */
 abstract class ClusterGraph protected () extends Serializable {
 
+  /** Underlying raw graph */
   val graph: Graph[Factor, Set[Variable]]
+
+  /** Factors contained in the graph */
   val factors : Set[Factor]
+
+  /** Complete set of variables of the graph */
   val variables : Set[Variable]
 
+  /** Calibrates the marginals of the graph */
   def calibrate(maxIters:Int = 10) : ClusterGraph
+
+  /** Counts the number of clusters in the graph */
   def countClusters() : Long
 
 }
 object ClusterGraph {
+
+  /**
+   * Builds a Bethe Cluster Graph with given factors.
+   * @param factors Factor set
+   * @param sc Spark Context
+   * @return Bethe Cluster Graph with given factors
+   */
   def apply(factors: Set[Factor], sc : SparkContext) : ClusterGraph = {
     ClusterGraphImpl(factors, sc)
   }

@@ -5,7 +5,7 @@ import com.blackbox.gmx.model.{ArrayFactor, Factor, Variable}
 import org.apache.spark.{SparkContext, SparkConf}
 
 /**
- * Created by guillermoblascojimenez on 29/09/14.
+ * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Figure 3.4 (page 53)
  */
 object Student {
 

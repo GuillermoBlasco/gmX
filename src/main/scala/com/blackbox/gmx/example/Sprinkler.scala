@@ -5,7 +5,7 @@ import com.blackbox.gmx.model._
 import org.apache.spark._
 
 /**
- * Created by guillermoblascojimenez on 17/09/14.
+ * Ref: http://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
  */
 object Sprinkler {
 
