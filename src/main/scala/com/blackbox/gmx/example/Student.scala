@@ -19,7 +19,7 @@ object Student {
     val clusterNumber = clusterGraph.graph.vertices.count()
     assert(clusterNumber == 8)
     println(s"Cluster with $clusterNumber clusters")
-    val calibrated = clusterGraph.calibrate()
+    val calibrated = clusterGraph.calibrated()
     println(s"Calibrated")
     // print the posteriors
     val factors = calibrated.factors

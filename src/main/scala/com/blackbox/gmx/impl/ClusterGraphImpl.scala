@@ -21,22 +21,14 @@ class ClusterGraphImpl(
 
   override val variables: Set[Variable] = graph.edges.aggregate(mutable.Set[Variable]())((s,e) => s ++ e.attr, (s1, s2) => s1 ++ s2).toSet
 
-  /*
-   * Belief propagation
-   *
-   * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 11.1 (page 397)
-   */
-  override def calibrate(maxIters :Int = 10): ClusterGraph = {
-    //Initial message: 1.0
-    val calibrated = graph.pregel[Factor](Factor.emptyFactor(1.0), maxIters)(
-      // message processing: multiply factor and delta and normalize
-      (vertexId, factor, delta) => (factor * delta).normalized(),
-      // message passing: project the factor to the shared variables
-      (triplet) => Iterator((triplet.dstId, triplet.srcAttr.marginal(triplet.attr))),
-      // message aggregation: multiply deltas
-      (delta1, delta2) => delta1 * delta2
-    )
-    new ClusterGraphImpl(calibrated)
+  override def calibrated(maxIterations :Int = 10): ClusterGraph = {
+    val g = BeliefPropagation(maxIterations)(graph)
+    new ClusterGraphImpl(g).normalized()
+  }
+
+  override def normalized() : ClusterGraph = {
+    val g = graph.mapVertices[Factor]((id, f) => f.normalized())
+    new ClusterGraphImpl(g)
   }
 
   override def countClusters() : Long = {
