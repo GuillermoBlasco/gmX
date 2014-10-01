@@ -13,10 +13,8 @@ object BeliefPropagation {
    */
 
   private class BPVertex (val factor: Factor, var deltas: Map[VertexId, Factor]) extends java.io.Serializable {
-    // builds a new BP vertex with updated deltas
-    def updateDeltas(newDeltas: Map[VertexId, Factor]) : BPVertex = new BPVertex(factor, newDeltas)
     // multiplies deltas but the one coming from j cluster
-    def packDeltasFor(j:VertexId) : Factor = deltas.aggregate[Factor](Factor.emptyFactor(1.0))(
+    def packDeltasFor(j:VertexId) : Factor = factor * deltas.aggregate[Factor](Factor.emptyFactor(1.0))(
       { case (f, (id, d)) => if (id != j) f * d else f }, _ * _
     )
     def aggregate() : Factor = factor * deltas.values.aggregate[Factor](Factor.emptyFactor(1.0))(_ * _, _ * _)
@@ -35,20 +33,21 @@ object BeliefPropagation {
   // Vertex i have the factor phi_i and a mapping j -> delta(j->i) where j takes values over the N(j)
   private def toBPGraph(graph: Graph[Factor, Set[Variable]]) : Graph[BPVertex, Set[Variable]] = graph.mapVertices[BPVertex]((id, f) => BPVertex(f))
 
-  private def vertexProcess(id:VertexId, vertex: BPVertex, newDeltas: Map[VertexId, Factor]) : BPVertex = vertex.updateDeltas(newDeltas)
+  // builds a new BP vertex with updated deltas
+  private def vertexProcess(id:VertexId, vertex: BPVertex, newDeltas: Map[VertexId, Factor]) : BPVertex = BPVertex(vertex.factor, newDeltas)
 
   private def deltaAggregation(d1: Map[VertexId, Factor], d2: Map[VertexId, Factor]) : Map[VertexId, Factor] = d1 ++ d2
 
   private def sumDeltaMessage(triplet: EdgeTriplet[BPVertex, Set[Variable]]) : Iterator[(VertexId, Map[VertexId, Factor])] =
     Iterator((triplet.dstId, Map[VertexId, Factor](
       // delta srcId -> dstId is src factor * deltas to srcId (but the one coming from dstId)
-      triplet.srcId -> (triplet.srcAttr.factor * triplet.srcAttr.packDeltasFor(triplet.dstId)).marginal(triplet.attr).normalized()
+      triplet.srcId -> triplet.srcAttr.packDeltasFor(triplet.dstId).marginal(triplet.attr).normalized()
     )))
 
   private def maxDeltaMessage(triplet: EdgeTriplet[BPVertex, Set[Variable]]) : Iterator[(VertexId, Map[VertexId, Factor])] =
     Iterator((triplet.dstId, Map[VertexId, Factor](
       // delta srcId -> dstId is src factor * deltas to srcId (but the one coming from dstId)
-      triplet.srcId -> (triplet.srcAttr.factor * triplet.srcAttr.packDeltasFor(triplet.dstId)).maxMarginal(triplet.attr).normalized()
+      triplet.srcId -> triplet.srcAttr.packDeltasFor(triplet.dstId).maxMarginal(triplet.attr).normalized()
     )))
 
   /*
