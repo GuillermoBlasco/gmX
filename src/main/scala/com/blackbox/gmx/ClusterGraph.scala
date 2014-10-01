@@ -25,6 +25,9 @@ abstract class ClusterGraph protected () extends Serializable {
   /** Calibrates the marginals of the graph */
   def calibrated(maxIters:Int = 10) : ClusterGraph
 
+  /** Calibrates MAPs of the graph */
+  def map(maxIterations :Int = 10): ClusterGraph
+
   /** Normalizes the cluster grpah factors */
   def normalized() : ClusterGraph
 

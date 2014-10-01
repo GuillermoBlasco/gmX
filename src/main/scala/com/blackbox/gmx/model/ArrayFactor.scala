@@ -55,6 +55,20 @@ class ArrayFactor(
     assert(variables diff scope isEmpty)
     marginalize(scope diff variables)
   }
+  def maxMarginal(variables: Set[Variable]) : Factor = {
+    assert(variables diff scope isEmpty)
+    maxMarginalize(scope diff variables)
+  }
+  def maxMarginalize(variables: Set[Variable]) : Factor = {
+    assert(variables diff scope isEmpty)
+    val X: Set[Variable] = scope diff variables
+    val phi: ArrayFactor = ArrayFactor(X, 0.0)
+    for (i <- 0 until this.size) {
+      val assignment = this.assignmentOfIndex(i)
+      phi(assignment) = Math.max(phi(assignment), this.values(i))
+    }
+    phi
+  }
 
   override def toString : String = s"ArrayFactor [${super.toString}]"
 }

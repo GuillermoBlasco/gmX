@@ -15,15 +15,7 @@ object Sprinkler {
 
     val clusterGraph: ClusterGraph = buildGraph(sc)
 
-    println("Cluster Graph built")
-    val clusterNumber = clusterGraph.graph.vertices.count()
-    assert(clusterNumber == 7)
-    println(s"Cluster with $clusterNumber clusters")
-    val calibrated = clusterGraph.calibrated()
-    println(s"Calibrated")
-    // print the posteriors
-    val factors = calibrated.factors
-    factors foreach ((factor: Factor) => println(factor.toString))
+    OperationExamples.marginalizeAndMap(clusterGraph)
   }
 
   def buildGraph(sc : SparkContext) : ClusterGraph = {

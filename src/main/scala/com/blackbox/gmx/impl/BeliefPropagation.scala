@@ -6,37 +6,57 @@ import org.apache.spark.graphx._
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 11.1 (page 397)
  */
-class BeliefPropagation {
-
-}
 object BeliefPropagation {
 
-  class BPVertex (val factor: Factor, var deltas: Map[VertexId, Factor]) extends java.io.Serializable {
+  /*
+   * Additional structure for BP
+   */
+
+  private class BPVertex (val factor: Factor, var deltas: Map[VertexId, Factor]) extends java.io.Serializable {
     // builds a new BP vertex with updated deltas
     def updateDeltas(newDeltas: Map[VertexId, Factor]) : BPVertex = new BPVertex(factor, newDeltas)
-    // multiplies deltas but the one coming from j
+    // multiplies deltas but the one coming from j cluster
     def packDeltasFor(j:VertexId) : Factor = deltas.aggregate[Factor](Factor.emptyFactor(1.0))(
-      { case (f, (id, d)) => if (id != j) f * d else f },
-      { case (f1, f2) => f1 * f2 }
+      { case (f, (id, d)) => if (id != j) f * d else f }, _ * _
     )
+    def aggregate() : Factor = factor * deltas.values.aggregate[Factor](Factor.emptyFactor(1.0))(_ * _, _ * _)
+  }
+  private object BPVertex {
+    def apply(factor:Factor) : BPVertex = apply(factor, Map[VertexId, Factor]())
+    def apply(factor:Factor, deltas:Map[VertexId, Factor]) : BPVertex = new BPVertex(factor, deltas)
   }
 
-  def apply(maxIterations : Int = 10)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = {
-    // complete the vertex with incoming messages.
-    // each vertex is the original Factor and a mapping of vertex to factors that are the incoming deltas.
-    // Vertex i have the factor phi_i and a mapping j -> delta(j->i) where j takes values over the N(j)
-    val g = graph.mapVertices[BPVertex]((id, f) => new BPVertex(f, Map[VertexId, Factor]()))
-      // vertex process: update deltas
-    val vertexProcess : (VertexId, BPVertex, Map[VertexId, Factor]) => BPVertex =
-        (vId, vertex, newDeltas) => vertex.updateDeltas(newDeltas) // just replace with new deltas
-    // delta src -> dst
-    val deltaMessage : (EdgeTriplet[BPVertex, Set[Variable]]) => Iterator[(VertexId, Map[VertexId, Factor])] =
-      (triplet) => Iterator((triplet.dstId, Map[VertexId, Factor](
-          // delta srcId -> dstId is src factor * deltas to srcId (but the one coming from dstId)
-          triplet.srcId -> (triplet.srcAttr.factor * triplet.srcAttr.packDeltasFor(triplet.dstId)).marginal(triplet.attr).normalized()
+  /*
+   * Support methods for BP
+   */
+
+  // complete the vertex with incoming messages.
+  // each vertex is the original Factor and a mapping of vertex to factors that are the incoming deltas.
+  // Vertex i have the factor phi_i and a mapping j -> delta(j->i) where j takes values over the N(j)
+  private def toBPGraph(graph: Graph[Factor, Set[Variable]]) : Graph[BPVertex, Set[Variable]] = graph.mapVertices[BPVertex]((id, f) => BPVertex(f))
+
+  private def vertexProcess(id:VertexId, vertex: BPVertex, newDeltas: Map[VertexId, Factor]) : BPVertex = vertex.updateDeltas(newDeltas)
+
+  private def deltaAggregation(d1: Map[VertexId, Factor], d2: Map[VertexId, Factor]) : Map[VertexId, Factor] = d1 ++ d2
+
+  private def sumDeltaMessage(triplet: EdgeTriplet[BPVertex, Set[Variable]]) : Iterator[(VertexId, Map[VertexId, Factor])] =
+    Iterator((triplet.dstId, Map[VertexId, Factor](
+      // delta srcId -> dstId is src factor * deltas to srcId (but the one coming from dstId)
+      triplet.srcId -> (triplet.srcAttr.factor * triplet.srcAttr.packDeltasFor(triplet.dstId)).marginal(triplet.attr).normalized()
     )))
-    // deltas aggregation
-    val deltaAggregation : (Map[VertexId, Factor], Map[VertexId, Factor]) => Map[VertexId, Factor] = _ ++ _
+
+  private def maxDeltaMessage(triplet: EdgeTriplet[BPVertex, Set[Variable]]) : Iterator[(VertexId, Map[VertexId, Factor])] =
+    Iterator((triplet.dstId, Map[VertexId, Factor](
+      // delta srcId -> dstId is src factor * deltas to srcId (but the one coming from dstId)
+      triplet.srcId -> (triplet.srcAttr.factor * triplet.srcAttr.packDeltasFor(triplet.dstId)).maxMarginal(triplet.attr).normalized()
+    )))
+
+  /*
+   * Core BP algorithm
+   */
+  private def apply(deltaMessage: (EdgeTriplet[BPVertex, Set[Variable]]) => Iterator[(VertexId, Map[VertexId, Factor])], maxIterations : Int)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = {
+
+    val g = toBPGraph(graph)
 
     //Initial empty message
     val calibrated = g.pregel[Map[VertexId,Factor]](Map.empty[VertexId, Factor], maxIterations)(
@@ -44,9 +64,10 @@ object BeliefPropagation {
       deltaMessage,
       deltaAggregation
     )
-    val output: Graph[Factor, Set[Variable]] = calibrated.mapVertices({
-      case (id ,vertex) => vertex.factor * vertex.deltas.values.aggregate[Factor](Factor.emptyFactor(1.0))((d1,d2) => d1 * d2,(d1,d2) => d1 * d2)
-    })
+
+    val output: Graph[Factor, Set[Variable]] = calibrated.mapVertices((id ,vertex) => vertex.aggregate())
     output
   }
+  def sum(maxIterations: Int)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(sumDeltaMessage, maxIterations)(graph)
+  def max(maxIterations: Int)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(maxDeltaMessage, maxIterations)(graph)
 }

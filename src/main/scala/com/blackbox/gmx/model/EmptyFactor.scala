@@ -6,11 +6,6 @@ package com.blackbox.gmx.model
 protected class EmptyFactor(val value: Double) extends Factor with LogFactor {
   override def scope(): Set[Variable] = Set[Variable]()
 
-  override def marginal(variables: Set[Variable]): Factor = {
-    assert(variables isEmpty)
-    new EmptyFactor(value)
-  }
-
   override def z(): Double = value
 
   override def update(assignment: Map[Variable, Int], value: Double): Unit = {
@@ -34,10 +29,6 @@ protected class EmptyFactor(val value: Double) extends Factor with LogFactor {
     value
   }
 
-  override def marginalize(variables: Set[Variable]): Factor = {
-    assert(variables isEmpty)
-    new EmptyFactor(value)
-  }
 
   override def *(factor: Factor): Factor = {
     assert(factor != null)
@@ -64,6 +55,24 @@ protected class EmptyFactor(val value: Double) extends Factor with LogFactor {
   override def -(c: Double): LogFactor = {
     assert(!(c.isNaN || c.isInfinity))
     new EmptyFactor(value - c)
+  }
+
+  override def marginalize(variables: Set[Variable]): Factor = {
+    assert(variables isEmpty)
+    new EmptyFactor(value)
+  }
+  override def marginal(variables: Set[Variable]): Factor = {
+    assert(variables isEmpty)
+    new EmptyFactor(value)
+  }
+  override def maxMarginal(variables: Set[Variable]): Factor = {
+    assert(variables isEmpty)
+    new EmptyFactor(value)
+  }
+
+  override def maxMarginalize(variables: Set[Variable]): Factor = {
+    assert(variables isEmpty)
+    new EmptyFactor(value)
   }
 
   override def toString : String = s"EmptyFactor with value $value"

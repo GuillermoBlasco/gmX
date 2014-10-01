@@ -13,6 +13,8 @@ trait Factor extends Serializable {
   def log() : LogFactor
   def marginal(variables: Set[Variable]) : Factor
   def marginalize(variables: Set[Variable]) : Factor
+  def maxMarginal(variables: Set[Variable]) : Factor
+  def maxMarginalize(variables: Set[Variable]) : Factor
 
   def update(assignment : Map[Variable, Int], value: Double)
   def apply(assignment : Map[Variable, Int]) : Double
