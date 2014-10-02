@@ -17,6 +17,7 @@ class ClusterGraphImpl(
                         override val graph: Graph[Factor,Set[Variable]]
                         ) extends ClusterGraph {
 
+  def this() = this(null)
   override val factors: Set[Factor] = graph.vertices.aggregate(mutable.Set[Factor]())((s, v) => s + v._2, (s1, s2) => s1 ++ s2).toSet
 
   override val variables: Set[Variable] = graph.edges.aggregate(mutable.Set[Variable]())((s,e) => s ++ e.attr, (s1, s2) => s1 ++ s2).toSet

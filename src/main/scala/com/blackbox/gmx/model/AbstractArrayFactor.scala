@@ -6,7 +6,7 @@ import scala.util.control.Breaks._
 /**
  * Created by guillermoblascojimenez on 29/09/14.
  */
-class AbstractArrayFactor(
+protected class AbstractArrayFactor(
                            val scope : immutable.Set[Variable],
                            protected val strides: immutable.Map[Variable, Int],
                            protected val values: Array[Double]
@@ -37,7 +37,20 @@ class AbstractArrayFactor(
 
   override def toString: String = s"AbstractArrayFactor with scope {${scope.mkString(",")}} and values {${values.mkString(",")}}"
 }
-object AbstractArrayFactor {
+protected object AbstractArrayFactor {
+
+  def computeStrides(variables: Set[Variable]) : Map[Variable, Int] = {
+    val strides: mutable.HashMap[Variable, Int] = mutable.HashMap[Variable, Int]()
+    var stride = 1
+    // Variables are arranged to strides with no order. If we would like to arrange them to strides in some
+    // particular order here we should take the set to an ordered list and iterate over it.
+    val sortedVariables: List[Variable] = variables.toList.sorted
+    sortedVariables foreach { case (v) =>
+      strides(v) = stride
+      stride = stride * v.cardinality
+    }
+    strides.toMap
+  }
   /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 10.A.1 (page 359)
  */

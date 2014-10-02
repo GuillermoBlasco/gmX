@@ -19,10 +19,10 @@ object SmallMarkov {
   }
   def buildGraph(sc: SparkContext) : ClusterGraph = {
     // VARIABLES
-    val a    = Variable[String]("a", 2)
-    val b = Variable[String]("b", 2)
-    val c      = Variable[String]("c", 2)
-    val d  = Variable[String]("d", 2)
+    val a    = Variable("a", 2)
+    val b = Variable("b", 2)
+    val c      = Variable("c", 2)
+    val d  = Variable("d", 2)
 
     // FACTORS
     val phi1 = Factor(a,b)

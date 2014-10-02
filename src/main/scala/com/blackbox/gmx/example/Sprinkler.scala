@@ -20,10 +20,10 @@ object Sprinkler {
 
   def buildGraph(sc : SparkContext) : ClusterGraph = {
     // VARIABLES
-    val cloudy    = Variable[String]("CLOUDY", 2)
-    val sprinkler = Variable[String]("SPRINKLER", 2)
-    val rain      = Variable[String]("RAIN", 2)
-    val wetGrass  = Variable[String]("WET_GRASS", 2)
+    val cloudy    = Variable("CLOUDY", 2)
+    val sprinkler = Variable("SPRINKLER", 2)
+    val rain      = Variable("RAIN", 2)
+    val wetGrass  = Variable("WET_GRASS", 2)
 
     // FACTORS
     val cloudyFactor = Factor(cloudy)

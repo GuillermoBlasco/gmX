@@ -77,3 +77,10 @@ protected class EmptyFactor(val value: Double) extends Factor with LogFactor {
 
   override def toString : String = s"EmptyFactor with value $value"
 }
+object EmptyFactor {
+
+  def distance(phi1:EmptyFactor, phi2:EmptyFactor) : Double = {
+    Math.abs(phi1.value - phi2.value)
+  }
+
+}

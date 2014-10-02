@@ -2,6 +2,7 @@ package com.blackbox.gmx.impl
 
 import com.blackbox.gmx.model.{Variable, Factor}
 import org.apache.spark.graphx._
+import org.apache.spark.rdd.RDD
 
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 11.1 (page 397)
@@ -58,7 +59,13 @@ object BeliefPropagation {
     val g = toBPGraph(graph)
 
     //Initial empty message
-    val calibrated = g.pregel[Map[VertexId,Factor]](Map.empty[VertexId, Factor], maxIterations)(
+    val calibrated = Pregel[BPVertex, Set[Variable], Map[VertexId,Factor]](
+      g,
+      Map.empty[VertexId, Factor],
+      maxIterations,
+      EdgeDirection.Either,
+      (i: RDD[((VertexId, Map[VertexId, Factor]),(VertexId, Map[VertexId, Factor]))]) => false
+    )(
       vertexProcess,
       deltaMessage,
       deltaAggregation

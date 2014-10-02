@@ -28,4 +28,16 @@ object Factor {
   def apply(variables: Set[Variable]) : Factor = ArrayFactor(variables)
   def constantFactor(variables: Set[Variable], constant: Double) : Factor = if (variables.isEmpty) emptyFactor(constant) else ArrayFactor(variables, constant)
   def emptyFactor(constant: Double) : Factor = new EmptyFactor(constant)
+  def distance(phi1: Factor, phi2: Factor) : Double = {
+    if (phi1.scope() != phi2.scope()) {
+      throw new IllegalArgumentException(s"Distance for factors with scopes ${phi1.scope()} and ${phi2.scope()} is not legal.")
+    }
+    if (phi1.getClass.equals(EmptyFactor) && phi2.getClass.equals(EmptyFactor)) {
+      return EmptyFactor.distance(phi1.asInstanceOf, phi2.asInstanceOf)
+    }
+    if (phi1.getClass.equals(ArrayFactor) && phi2.getClass.equals(ArrayFactor)) {
+      return ArrayFactor.distance(phi1.asInstanceOf, phi2.asInstanceOf)
+    }
+    throw new UnsupportedOperationException(s"Distance for factors of classes ${phi1.getClass} and ${phi2.getClass} is not supported.")
+  }
 }

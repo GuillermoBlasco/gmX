@@ -1,6 +1,6 @@
 package com.blackbox.gmx.model
 
-import scala.collection.{mutable, immutable}
+import scala.collection.immutable
 
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Box 10.A (page 358)
@@ -77,15 +77,7 @@ protected object ArrayFactor {
 
   def apply(variables: Set[Variable], defaultValue: Double = 0.0) : ArrayFactor = {
     val size = variables.foldLeft(1)((z,v) => z * v.cardinality)
-    val strides: mutable.HashMap[Variable, Int] = mutable.HashMap[Variable, Int]()
-    var stride = 1
-    // Variables are arranged to strides with no order. If we would like to arrange them to strides in some
-    // particular order here we should take the set to an ordered list and iterate over it.
-    variables foreach { case (v) =>
-      strides(v) = stride
-      stride = stride * v.cardinality
-    }
-    new ArrayFactor(variables, strides.toMap, Array.fill(size)(defaultValue))
+    new ArrayFactor(variables, AbstractArrayFactor.computeStrides(variables), Array.fill(size)(defaultValue))
   }
 
   /*
@@ -97,5 +89,13 @@ protected object ArrayFactor {
     val X: Set[Variable] = X1 ++ X2
     val psi: ArrayFactor = ArrayFactor(X)
     AbstractArrayFactor.product(phi1, phi2, psi, op)
+  }
+
+  /*
+   * Returns the squared root of the sum of squared differences
+   */
+  def distance(phi1: ArrayFactor, phi2: ArrayFactor) : Double = {
+    assert(phi1.scope == phi2.scope)
+    (phi1.values zip phi2.values).aggregate[Double](0.0)((v, p) => v + Math.pow(p._1 - p._2, 2), (v1, v2) => v1 + v2)
   }
 }

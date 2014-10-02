@@ -3,9 +3,9 @@ package com.blackbox.gmx.model
 /**
  * Created by guillermoblascojimenez on 16/09/14.
  */
-trait Variable extends Serializable {
+trait Variable extends Serializable with Comparable[Variable]{
 
-  def id: java.io.Serializable
+  def id: String
 
   def cardinality: Int
 
@@ -22,9 +22,9 @@ trait Variable extends Serializable {
 
   override def hashCode : Int = id.hashCode
 
+  override def compareTo(v : Variable) : Int = id.compareTo(v.id)
+
 }
 object Variable {
-  def apply[I <: java.io.Serializable](_id: I, _size: Int): Variable = {
-    new VariableImpl(_id, _size)
-  }
+  def apply(id: String, size: Int): Variable = new VariableImpl(id, size)
 }

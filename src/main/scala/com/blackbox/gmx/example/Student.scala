@@ -20,11 +20,11 @@ object Student {
 
   def buildGraph(sc: SparkContext) : ClusterGraph = {
     // VARIABLES
-    val difficulty    = Variable[String]("DIFFICULTY", 2)
-    val intelligence = Variable[String]("INTELLIGENCE", 2)
-    val grade      = Variable[String]("GRADE", 3)
-    val sat  = Variable[String]("SAT", 2)
-    val letter  = Variable[String]("LETTER", 2)
+    val difficulty    = Variable("DIFFICULTY", 2)
+    val intelligence = Variable("INTELLIGENCE", 2)
+    val grade      = Variable("GRADE", 3)
+    val sat  = Variable("SAT", 2)
+    val letter  = Variable("LETTER", 2)
 
     // FACTORS
     val difficultyFactor = Factor(difficulty)
