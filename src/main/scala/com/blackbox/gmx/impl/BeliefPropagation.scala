@@ -3,6 +3,7 @@ package com.blackbox.gmx.impl
 import com.blackbox.gmx.model.{Variable, Factor}
 import org.apache.spark.graphx._
 import org.apache.spark.rdd.RDD
+import scala.collection.mutable
 
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 11.1 (page 397)
@@ -51,10 +52,41 @@ object BeliefPropagation {
       triplet.srcId -> triplet.srcAttr.packDeltasFor(triplet.dstId).maxMarginal(triplet.attr).normalized()
     )))
 
+
+  /*
+   * Computes the error of each step
+   */
+  private def stopFunction(
+                            epsilon:Double
+                            )(
+                            deltas: RDD[((VertexId, Map[VertexId, Factor]),(VertexId, Map[VertexId, Factor]))]
+                            ) : Boolean = {
+    val error: Double = deltas.aggregate(0.0)(
+      (error, v) => {
+        assert(v._1._1 == v._2._1) // old and news are matched
+        val vertexId = v._1._1
+        var vertexError = 0.0
+        v._1._2.keys foreach((k) =>
+          {vertexError = vertexError + Factor.distance(v._1._2(k).normalized(), v._2._2(k).normalized()) }
+        )
+        vertexError
+      },
+      (e1, e2) => e1 + e2
+    )
+    println(s"error: $error")
+    error < epsilon
+  }
+
   /*
    * Core BP algorithm
    */
-  private def apply(deltaMessage: (EdgeTriplet[BPVertex, Set[Variable]]) => Iterator[(VertexId, Map[VertexId, Factor])], maxIterations : Int)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = {
+  private def apply(
+      deltaMessage: (EdgeTriplet[BPVertex, Set[Variable]]) => Iterator[(VertexId, Map[VertexId, Factor])],
+      maxIterations : Int,
+      epsilon : Double
+    )(
+      graph : Graph[Factor, Set[Variable]]
+    ) : Graph[Factor, Set[Variable]] = {
 
     val g = toBPGraph(graph)
 
@@ -64,7 +96,7 @@ object BeliefPropagation {
       Map.empty[VertexId, Factor],
       maxIterations,
       EdgeDirection.Either,
-      (i: RDD[((VertexId, Map[VertexId, Factor]),(VertexId, Map[VertexId, Factor]))]) => false
+      stopFunction(epsilon)
     )(
       vertexProcess,
       deltaMessage,
@@ -74,6 +106,6 @@ object BeliefPropagation {
     val output: Graph[Factor, Set[Variable]] = calibrated.mapVertices((id ,vertex) => vertex.aggregate())
     output
   }
-  def sum(maxIterations: Int)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(sumDeltaMessage, maxIterations)(graph)
-  def max(maxIterations: Int)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(maxDeltaMessage, maxIterations)(graph)
+  def sum(maxIterations: Int, epsilon: Double)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(sumDeltaMessage, maxIterations, epsilon)(graph)
+  def max(maxIterations: Int, epsilon: Double)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(maxDeltaMessage, maxIterations, epsilon)(graph)
 }

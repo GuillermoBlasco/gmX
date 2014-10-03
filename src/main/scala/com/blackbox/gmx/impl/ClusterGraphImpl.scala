@@ -22,13 +22,13 @@ class ClusterGraphImpl(
 
   override val variables: Set[Variable] = graph.edges.aggregate(mutable.Set[Variable]())((s,e) => s ++ e.attr, (s1, s2) => s1 ++ s2).toSet
 
-  override def calibrated(maxIterations :Int = 10): ClusterGraph = {
-    val g = BeliefPropagation.sum(maxIterations)(graph)
+  override def calibrated(maxIterations :Int = 10, epsilon:Double = 0.1): ClusterGraph = {
+    val g = BeliefPropagation.sum(maxIterations, epsilon)(graph)
     new ClusterGraphImpl(g).normalized()
   }
 
-  override def map(maxIterations :Int = 10): ClusterGraph = {
-    val g = BeliefPropagation.max(maxIterations)(graph)
+  override def map(maxIterations :Int = 10, epsilon:Double = 0.1): ClusterGraph = {
+    val g = BeliefPropagation.max(maxIterations, epsilon)(graph)
     new ClusterGraphImpl(g).normalized()
   }
 

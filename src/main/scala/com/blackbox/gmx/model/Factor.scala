@@ -32,11 +32,11 @@ object Factor {
     if (phi1.scope() != phi2.scope()) {
       throw new IllegalArgumentException(s"Distance for factors with scopes ${phi1.scope()} and ${phi2.scope()} is not legal.")
     }
-    if (phi1.getClass.equals(EmptyFactor) && phi2.getClass.equals(EmptyFactor)) {
-      return EmptyFactor.distance(phi1.asInstanceOf, phi2.asInstanceOf)
+    if (phi1.getClass.equals(classOf[EmptyFactor]) && phi2.getClass.equals(classOf[EmptyFactor])) {
+      return EmptyFactor.distance(phi1.asInstanceOf[EmptyFactor], phi2.asInstanceOf[EmptyFactor])
     }
-    if (phi1.getClass.equals(ArrayFactor) && phi2.getClass.equals(ArrayFactor)) {
-      return ArrayFactor.distance(phi1.asInstanceOf, phi2.asInstanceOf)
+    if (phi1.getClass.equals(classOf[ArrayFactor]) && phi2.getClass.equals(classOf[ArrayFactor])) {
+      return ArrayFactor.distance(phi1.asInstanceOf[ArrayFactor], phi2.asInstanceOf[ArrayFactor])
     }
     throw new UnsupportedOperationException(s"Distance for factors of classes ${phi1.getClass} and ${phi2.getClass} is not supported.")
   }

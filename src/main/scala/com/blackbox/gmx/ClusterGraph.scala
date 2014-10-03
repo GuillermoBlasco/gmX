@@ -23,10 +23,10 @@ abstract class ClusterGraph protected () extends Serializable {
   val variables : Set[Variable]
 
   /** Calibrates the marginals of the graph */
-  def calibrated(maxIters:Int = 10) : ClusterGraph
+  def calibrated(maxIters:Int = 10, epsilon:Double=0.1) : ClusterGraph
 
   /** Calibrates MAPs of the graph */
-  def map(maxIterations :Int = 10): ClusterGraph
+  def map(maxIterations :Int = 10, epsilon:Double=0.1): ClusterGraph
 
   /** Normalizes the cluster grpah factors */
   def normalized() : ClusterGraph
