@@ -9,3 +9,6 @@ project/
 .idea/
 out/
 *.iml
+
+# Scala style output
+scalastyle-output.xml
