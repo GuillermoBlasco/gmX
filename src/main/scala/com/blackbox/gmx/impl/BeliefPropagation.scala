@@ -3,7 +3,6 @@ package com.blackbox.gmx.impl
 import com.blackbox.gmx.model.{Variable, Factor}
 import org.apache.spark.graphx._
 import org.apache.spark.rdd.RDD
-import scala.collection.mutable
 
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 11.1 (page 397)
@@ -73,7 +72,7 @@ object BeliefPropagation {
       },
       (e1, e2) => e1 + e2
     )
-    println(s"error: $error")
+    println(s"error: $error at ${System.currentTimeMillis()}")
     error < epsilon
   }
 
@@ -88,7 +87,7 @@ object BeliefPropagation {
       graph : Graph[Factor, Set[Variable]]
     ) : Graph[Factor, Set[Variable]] = {
 
-    val g = toBPGraph(graph)
+    val g = toBPGraph(graph).cache()
 
     //Initial empty message
     val calibrated = Pregel[BPVertex, Set[Variable], Map[VertexId,Factor]](
@@ -102,8 +101,15 @@ object BeliefPropagation {
       deltaMessage,
       deltaAggregation
     )
-
-    val output: Graph[Factor, Set[Variable]] = calibrated.mapVertices((id ,vertex) => vertex.aggregate())
+    val output: Graph[Factor, Set[Variable]] = calibrated.mapVertices((id ,vertex) => vertex.aggregate()).cache()
+    /*
+    // uncache working graph
+    g.vertices.unpersist(blocking=false)
+    g.edges.unpersist(blocking=false)
+    // uncache calibrated working graph
+    calibrated.vertices.unpersist(blocking=false)
+    calibrated.vertices.unpersist(blocking=false)
+    */
     output
   }
   def sum(maxIterations: Int, epsilon: Double)(graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(sumDeltaMessage, maxIterations, epsilon)(graph)

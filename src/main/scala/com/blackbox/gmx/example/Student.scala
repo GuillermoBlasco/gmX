@@ -12,6 +12,10 @@ object Student {
   def main(args: Array[String]) = {
     val conf = new SparkConf().setAppName("student")
     val sc: SparkContext = new SparkContext(conf)
+    execute(sc)
+  }
+
+  def execute(sc: SparkContext) = {
 
     val clusterGraph = buildGraph(sc)
 

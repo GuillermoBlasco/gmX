@@ -12,9 +12,10 @@ object OperationExamples {
     println("Cluster Graph built")
     val clusterNumber = clusterGraph.graph.vertices.count()
     println(s"Cluster with $clusterNumber clusters")
-    val calibrated = clusterGraph.calibrated(100, 0.000001)
-    val mapCalibrated = clusterGraph.map(100, 0.000001)
+    val calibrated = clusterGraph.calibrated(100, 0.00001)
     println(s"Calibrated")
+    val mapCalibrated = clusterGraph.map(100, 0.00001)
+    println(s"Map calibrated")
     // print the posteriors
     println("marginals")
     var factors = calibrated.factors

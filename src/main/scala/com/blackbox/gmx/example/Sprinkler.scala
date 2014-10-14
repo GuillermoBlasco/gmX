@@ -12,8 +12,12 @@ object Sprinkler {
   def main(args: Array[String]) = {
     val conf = new SparkConf().setAppName("sprinkler")
     val sc: SparkContext = new SparkContext(conf)
+    execute(sc)
+  }
 
-    val clusterGraph: ClusterGraph = buildGraph(sc)
+  def execute(sc: SparkContext) = {
+
+    val clusterGraph = buildGraph(sc)
 
     OperationExamples.marginalizeAndMap(clusterGraph)
   }
