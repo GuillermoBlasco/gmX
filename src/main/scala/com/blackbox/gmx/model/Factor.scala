@@ -11,6 +11,7 @@ trait Factor extends Serializable {
   def * (c: Double) : Factor
   def / (c: Double) : Factor
   def log() : LogFactor
+  def inverse() : Factor
   def marginal(variables: Set[Variable]) : Factor
   def marginalize(variables: Set[Variable]) : Factor
   def maxMarginal(variables: Set[Variable]) : Factor

@@ -5,11 +5,11 @@ import scala.collection.immutable
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Box 10.A (page 358)
  */
-class ArrayFactor(
-                             override val scope : immutable.Set[Variable],
-                             override val strides: immutable.Map[Variable, Int],
-                             override val values: Array[Double]
-                             ) extends AbstractArrayFactor(scope, strides, values) with Factor {
+class ArrayFactor
+  (override val scope : immutable.Set[Variable],
+   override val strides: immutable.Map[Variable, Int],
+   override val values: Array[Double])
+  extends AbstractArrayFactor(scope, strides, values) with Factor {
 
 
   override def *(factor: Factor): Factor = {
@@ -71,6 +71,9 @@ class ArrayFactor(
   }
 
   override def toString : String = s"ArrayFactor [${super.toString}]"
+
+  override def inverse(): Factor = new ArrayFactor(scope, strides, values.transform((v: Double) => 1.0 / v).toArray)
+
 }
 protected object ArrayFactor {
   private val op : (Double, Double) => Double = (a, b) => a * b
