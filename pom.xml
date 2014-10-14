@@ -344,7 +344,7 @@
         <version>0.4.0</version>
         <configuration>
           <verbose>true</verbose>
-          <failOnViolation>true</failOnViolation>
+          <failOnViolation>false</failOnViolation>
           <includeTestSourceDirectory>false</includeTestSourceDirectory>
           <failOnWarning>false</failOnWarning>
           <sourceDirectory>${basedir}/src/main/scala</sourceDirectory>
@@ -353,14 +353,14 @@
           <outputFile>scalastyle-output.xml</outputFile>
           <outputEncoding>UTF-8</outputEncoding>
         </configuration>
-        <!--<executions>
+        <executions>
           <execution>
             <phase>package</phase>
             <goals>
               <goal>check</goal>
             </goals>
           </execution>
-        </executions>-->
+        </executions>
       </plugin>
     </plugins>
   </build>
