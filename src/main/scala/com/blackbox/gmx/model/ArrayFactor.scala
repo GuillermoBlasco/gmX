@@ -41,7 +41,7 @@ class ArrayFactor(
   override def normalized() : Factor = this / z()
 
   override def marginalize(variables: Set[Variable]): Factor = {
-    assert(variables diff scope isEmpty)
+    assert((variables diff scope).isEmpty)
     val X: Set[Variable] = scope diff variables
     val phi: ArrayFactor = ArrayFactor(X, 0.0)
     for (i <- 0 until this.size) {
@@ -52,15 +52,15 @@ class ArrayFactor(
   }
 
   override def marginal(variables: Set[Variable]) : Factor = {
-    assert(variables diff scope isEmpty)
+    assert((variables diff scope).isEmpty)
     marginalize(scope diff variables)
   }
   def maxMarginal(variables: Set[Variable]) : Factor = {
-    assert(variables diff scope isEmpty)
+    assert((variables diff scope).isEmpty)
     maxMarginalize(scope diff variables)
   }
   def maxMarginalize(variables: Set[Variable]) : Factor = {
-    assert(variables diff scope isEmpty)
+    assert((variables diff scope).isEmpty)
     val X: Set[Variable] = scope diff variables
     val phi: ArrayFactor = ArrayFactor(X, 0.0)
     for (i <- 0 until this.size) {
