@@ -24,6 +24,8 @@ class ArrayFactor
     }
   }
 
+  override def /(factor : Factor) : Factor = this * factor.inverse()
+
   override def *(c: Double): Factor = {
     assert(c > 0)
     new ArrayFactor(scope, strides, values.transform((v : Double) => v * c).toArray)
@@ -55,11 +57,11 @@ class ArrayFactor
     assert((variables diff scope).isEmpty)
     marginalize(scope diff variables)
   }
-  def maxMarginal(variables: Set[Variable]) : Factor = {
+  override def maxMarginal(variables: Set[Variable]) : Factor = {
     assert((variables diff scope).isEmpty)
     maxMarginalize(scope diff variables)
   }
-  def maxMarginalize(variables: Set[Variable]) : Factor = {
+  override def maxMarginalize(variables: Set[Variable]) : Factor = {
     assert((variables diff scope).isEmpty)
     val X: Set[Variable] = scope diff variables
     val phi: ArrayFactor = ArrayFactor(X, 0.0)

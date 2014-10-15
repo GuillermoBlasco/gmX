@@ -1,14 +1,15 @@
 package com.blackbox.gmx.model
 
-import scala.collection.{mutable, immutable}
+import scala.collection.mutable
+import scala.collection.immutable._
 import scala.util.control.Breaks._
 
 /**
  * Created by guillermoblascojimenez on 29/09/14.
  */
 protected class AbstractArrayFactor(
-                           val scope : immutable.Set[Variable],
-                           protected val strides: immutable.Map[Variable, Int],
+                           val scope : Set[Variable],
+                           protected val strides: Map[Variable, Int],
                            protected val values: Array[Double]
                            ) {
 

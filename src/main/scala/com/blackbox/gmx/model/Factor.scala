@@ -9,6 +9,7 @@ trait Factor extends Serializable {
   def size() : Int
   def * (factor: Factor) : Factor
   def * (c: Double) : Factor
+  def / (factor: Factor) : Factor
   def / (c: Double) : Factor
   def log() : LogFactor
   def inverse() : Factor

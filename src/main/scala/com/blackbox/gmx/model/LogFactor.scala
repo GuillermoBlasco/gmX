@@ -9,8 +9,25 @@ trait LogFactor extends Serializable {
   def size() : Int
   def + (factor: LogFactor) : LogFactor
   def + (c: Double) : LogFactor
+
+  /**
+   * Let be f this log factor and g the given log factor. Then this method computes and returns
+   * f - g that is h(x) = f(x) - g(x)
+   * @param factor A log factor g.
+   * @return Returns f - g.
+   */
+  def - (factor: LogFactor) : LogFactor
   def - (c: Double) : LogFactor
   def exp() : Factor
+  /**
+   * Let be f a factor and g the log of f, that is g(x) = log(f(x)). Then this method returns
+   * h(x) = - g(x) that is h(x) = log(1/f(x))
+   */
+  def opposite() : LogFactor
+  def marginal(variables: Set[Variable]) : LogFactor
+  def marginalize(variables: Set[Variable]) : LogFactor
+  def maxMarginal(variables: Set[Variable]) : LogFactor
+  def maxMarginalize(variables: Set[Variable]) : LogFactor
 
   def update(assignment : Map[Variable, Int], value: Double)
   def apply(assignment : Map[Variable, Int]) : Double

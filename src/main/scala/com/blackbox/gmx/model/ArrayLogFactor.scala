@@ -21,10 +21,43 @@ class ArrayLogFactor( override val scope : immutable.Set[Variable],
     }
   }
 
+  override def -(factor: LogFactor): LogFactor = this + factor.opposite()
   override def +(c: Double): LogFactor = new ArrayLogFactor(scope, strides, values.transform((v : Double) => v + c).toArray)
   override def -(c: Double): LogFactor = new ArrayLogFactor(scope, strides, values.transform((v : Double) => v - c).toArray)
   override def exp(): Factor = new ArrayFactor(scope, strides, values.transform((v: Double) => Math.exp(v)).toArray)
+
+  override def marginalize(variables: Set[Variable]): LogFactor = {
+    assert((variables diff scope).isEmpty)
+    val X: Set[Variable] = scope diff variables
+    val phi: ArrayLogFactor = ArrayLogFactor(X, 0.0)
+    for (i <- 0 until this.size) {
+      val assignment = this.assignmentOfIndex(i)
+      phi(assignment) = MathUtils.logSum(phi(assignment), this.values(i))
+    }
+    phi
+  }
+
+  override def marginal(variables: Set[Variable]) : LogFactor = {
+    assert((variables diff scope).isEmpty)
+    marginalize(scope diff variables)
+  }
+  override def maxMarginal(variables: Set[Variable]) : LogFactor = {
+    assert((variables diff scope).isEmpty)
+    maxMarginalize(scope diff variables)
+  }
+  override def maxMarginalize(variables: Set[Variable]) : LogFactor = {
+    assert((variables diff scope).isEmpty)
+    val X: Set[Variable] = scope diff variables
+    val phi: ArrayLogFactor = ArrayLogFactor(X, 0.0)
+    for (i <- 0 until this.size) {
+      val assignment = this.assignmentOfIndex(i)
+      phi(assignment) = Math.max(phi(assignment), this.values(i))
+    }
+    phi
+  }
+
   override def toString : String = s"ArrayLogFactor [${super.toString}]"
+  override def opposite(): LogFactor = new ArrayLogFactor(scope, strides, values.transform((v: Double) => - v).toArray)
 }
 protected object ArrayLogFactor {
   private val op : (Double, Double) => Double = (a, b) => a+b
