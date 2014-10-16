@@ -14,8 +14,6 @@ class ArrayLogFactor( override val scope : immutable.Set[Variable],
     factor match {
       case phi2: ArrayLogFactor =>
         ArrayLogFactor.product(this, phi2)
-      case phi2: EmptyFactor =>
-        this + phi2.value
       case _ =>
         throw new UnsupportedOperationException(s"Can not multiply factor of class ${factor.getClass} with this factor of class ${this.getClass}")
     }

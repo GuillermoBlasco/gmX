@@ -2,12 +2,12 @@ package com.blackbox.gmx.impl
 
 import com.blackbox.gmx.model.{Variable, Factor}
 import org.apache.spark.graphx._
-import org.apache.spark.rdd.RDD
+import org.apache.spark.Logging
 
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 11.1 (page 397)
  */
-object BeliefPropagation {
+object BeliefPropagation extends Logging {
 
   /*
    * Additional structure for BP
@@ -17,7 +17,7 @@ object BeliefPropagation {
 
   }
   private object BPVertex {
-    def apply(factor:Factor) : BPVertex = apply(factor, Factor.constantFactor(factor.scope(), 1.0))
+    def apply(factor:Factor) : BPVertex = apply(factor, Factor.uniform(factor.scope()))
     def apply(factor:Factor, deltas: Factor) : BPVertex = new BPVertex(factor, deltas)
   }
 
@@ -31,24 +31,24 @@ object BeliefPropagation {
   private def toBPGraph
     (graph: Graph[Factor, Set[Variable]])
     : Graph[BPVertex, Factor] = {
-    graph.mapVertices[BPVertex]((id, f) => BPVertex(f)).mapEdges[Factor]((edge) => Factor.constantFactor(edge.attr, 1.0))
+    graph.mapVertices((id, f) => BPVertex(f)).mapEdges((edge) => Factor.uniform(edge.attr))
   }
 
   private def toClusterGraph
     (graph: Graph[BPVertex, Factor])
     : Graph[Factor, Set[Variable]] = {
-    graph.mapVertices[Factor]((id, v) => v.factor * v.deltas).mapEdges[Set[Variable]]((edge) => edge.attr.scope())
+    graph.mapVertices((id, v) => (v.factor * v.deltas).normalized()).mapEdges((edge) => edge.attr.scope())
   }
 
   private def reduceDeltas(d1: Factor, d2: Factor) : Factor = d1 * d2
 
-  private def sumProjection(f: Factor, s: Set[Variable]) : Factor = f.marginal(s)
+  private def sumProjection(f: Factor, s: Set[Variable]) : Factor = f.marginal(s).normalized()
   private def maxProjection(f: Factor, s: Set[Variable]) : Factor = f.maxMarginal(s)
 
   /*
    * Core BP algorithm
    */
-  private def apply
+  def apply
     (projection: (Factor, Set[Variable]) => Factor,
      maxIterations : Int,
      epsilon : Double)
@@ -58,18 +58,42 @@ object BeliefPropagation {
     assert(maxIterations > 0)
     assert(epsilon > 0.0)
 
-    val g: Graph[BPVertex, Factor] = toBPGraph(graph).cache()
+    println(s"BP epsilon $epsilon and maxIters $maxIterations")
+    var g: Graph[BPVertex, Factor] = toBPGraph(graph).cache()
 
     var iteration: Int = 0
     var iterationError: Double = Double.PositiveInfinity
 
     do {
+      println(s"Iteration $iteration starts")
 
-      // TODO: iteration
+      // compute new deltas
+      // for each edge i->j generate delta as
+      //    i->j_potential := i_factor * i_potential / j->i_potential
+      // Trick: for each edge i->j set as potential j_factor * j_potential / i->j_potential and then reverse all edges
+      val newDeltas = g.mapTriplets((triplet) => projection(triplet.dstAttr.factor * triplet.dstAttr.deltas / triplet.attr, triplet.attr.scope()).normalized()).reverse.cache()
+      newDeltas.edges.foreach((edge) => println(edge.attr))
+      // Compute new potentials and put them into a new graph
+      // for each node i collect incoming edges and update as:
+      //    i_potential := PRODUCT [j->i_potential, for j in N(i)]
+      val newPotentials = newDeltas.mapReduceTriplets((triplet) => Iterator((triplet.dstId, triplet.attr)), reduceDeltas).cache()
+      val newG = newDeltas.outerJoinVertices(newPotentials)((id, vertex, phi) => BPVertex(vertex.factor, phi.get)).cache()
 
-      // TODO: compute errors
-      iterationError = Double.PositiveInfinity
+      // compute errors
+      iterationError = newG.edges.innerJoin(g.edges)((srcId, dstId, newDelta, oldDelta) => (newDelta, oldDelta))
+        .aggregate(0.0)((error, factorPair) => error + Factor.distance(factorPair.attr._1, factorPair.attr._2), _ + _)
+
+      // unpersist things
+      g.unpersistVertices(blocking = false)
+      g.edges.unpersist(blocking = false)
+      newPotentials.unpersist(blocking = false)
+      newDeltas.unpersistVertices(blocking = false)
+      newDeltas.edges.unpersist(blocking = false)
+
+      // update cached things
+      g = newG
       iteration += 1
+      println(s"Iteration ends with error $iterationError")
     } while (iteration < maxIterations && iterationError > epsilon)
 
     val outputGraph = toClusterGraph(g).cache()

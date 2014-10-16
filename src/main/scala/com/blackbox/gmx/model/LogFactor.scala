@@ -37,6 +37,5 @@ object LogFactor {
   def apply(variable: Variable) : LogFactor = apply(Set[Variable](variable))
   def apply(variables: Variable*) : LogFactor = apply(variables.toSet)
   def apply(variables: Set[Variable]) : LogFactor = ArrayLogFactor(variables)
-  def constantFactor(variables: Set[Variable], constant: Double) : LogFactor = if (variables.isEmpty) emptyFactor(constant) else ArrayLogFactor(variables, constant)
-  def emptyFactor(value:Double) : LogFactor = new EmptyFactor(value)
+  def constantFactor(variables: Set[Variable], constant: Double) : LogFactor = ArrayLogFactor(variables, constant)
 }

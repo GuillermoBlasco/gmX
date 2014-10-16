@@ -17,8 +17,6 @@ class ArrayFactor
     factor match {
       case phi2: ArrayFactor =>
         ArrayFactor.product(this, phi2)
-      case phi2: EmptyFactor =>
-        this * phi2.value
       case _ =>
         throw new UnsupportedOperationException(s"Can not multiply factor of class ${factor.getClass} with this factor of class ${this.getClass}")
     }
@@ -38,7 +36,7 @@ class ArrayFactor
 
   override def log(): LogFactor = new ArrayLogFactor(scope, strides, values.transform((v: Double) => Math.log(v)).toArray)
 
-  override def z() : Double = values.aggregate[Double](0.0)((a,b) => a+b, (a,b) => a+b)
+  override def z() : Double = values.aggregate(0.0)(_ + _, _ + _)
 
   override def normalized() : Factor = this / z()
 
