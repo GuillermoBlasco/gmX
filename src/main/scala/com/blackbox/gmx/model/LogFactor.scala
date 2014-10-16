@@ -38,4 +38,13 @@ object LogFactor {
   def apply(variables: Variable*) : LogFactor = apply(variables.toSet)
   def apply(variables: Set[Variable]) : LogFactor = ArrayLogFactor(variables)
   def constantFactor(variables: Set[Variable], constant: Double) : LogFactor = ArrayLogFactor(variables, constant)
+  def distance(phi1: LogFactor, phi2: LogFactor) : Double = {
+    if (phi1.scope() != phi2.scope()) {
+      throw new IllegalArgumentException(s"Distance for factors with scopes ${phi1.scope()} and ${phi2.scope()} is not legal.")
+    }
+    if (phi1.getClass.equals(classOf[ArrayLogFactor]) && phi2.getClass.equals(classOf[ArrayLogFactor])) {
+      return ArrayLogFactor.distance(phi1.asInstanceOf[ArrayLogFactor], phi2.asInstanceOf[ArrayLogFactor])
+    }
+    throw new UnsupportedOperationException(s"Distance for factors of classes ${phi1.getClass} and ${phi2.getClass} is not supported.")
+  }
 }

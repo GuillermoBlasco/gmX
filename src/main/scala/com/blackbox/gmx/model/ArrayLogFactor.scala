@@ -75,4 +75,8 @@ protected object ArrayLogFactor {
     val psi: ArrayLogFactor = ArrayLogFactor(X)
     AbstractArrayFactor.product(phi1, phi2, psi, op)
   }
+  def distance(phi1: ArrayLogFactor, phi2: ArrayLogFactor) : Double = {
+    assert(phi1.scope == phi2.scope)
+    (phi1.values zip phi2.values).aggregate[Double](0.0)((v, p) => v + Math.pow(Math.exp(p._1) - Math.exp(p._2), 2), (v1, v2) => v1 + v2)
+  }
 }
