@@ -78,11 +78,13 @@ class ArrayFactor
 protected object ArrayFactor {
   private val op : (Double, Double) => Double = (a, b) => a * b
 
-  def apply(variables: Set[Variable], defaultValue: Double = 0.0) : ArrayFactor = {
-    val size = variables.foldLeft(1)((z,v) => z * v.cardinality)
-    new ArrayFactor(variables, AbstractArrayFactor.computeStrides(variables), Array.fill(size)(defaultValue))
+  def apply(variables: Set[Variable]) : ArrayFactor = {
+    apply(variables, {0.0})
   }
-
+  def apply(variables: Set[Variable], valueFactory: => Double) : ArrayFactor = {
+    val size = variables.foldLeft(1)((z,v) => z * v.cardinality)
+    new ArrayFactor(variables, AbstractArrayFactor.computeStrides(variables), Array.fill[Double](size)(valueFactory))
+  }
   /*
    * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 10.A.1 (page 359)
    */

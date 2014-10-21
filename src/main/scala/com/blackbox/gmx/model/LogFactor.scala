@@ -37,5 +37,7 @@ object LogFactor {
   def apply(variable: Variable) : LogFactor = apply(Set[Variable](variable))
   def apply(variables: Variable*) : LogFactor = apply(variables.toSet)
   def apply(variables: Set[Variable]) : LogFactor = ArrayLogFactor(variables)
+  def uniform(variables: Set[Variable]) : LogFactor = Factor.uniform(variables).log()
+  def randomized(variables: Set[Variable]) : LogFactor = Factor.randomized(variables).log()
   def constantFactor(variables: Set[Variable], constant: Double) : LogFactor = ArrayLogFactor(variables, constant)
 }

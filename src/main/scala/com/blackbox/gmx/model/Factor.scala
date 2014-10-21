@@ -30,6 +30,7 @@ object Factor {
   def apply(variables: Set[Variable]) : Factor = ArrayFactor(variables)
   def constantFactor(variables: Set[Variable], constant: Double) : Factor = ArrayFactor(variables, constant)
   def uniform(variables: Set[Variable]) : Factor = ArrayFactor(variables, 1.0).normalized()
+  def randomized(variables: Set[Variable]): ArrayFactor = ArrayFactor(variables, math.random)
   def distance(phi1: Factor, phi2: Factor) : Double = {
     if (phi1.scope() != phi2.scope()) {
       throw new IllegalArgumentException(s"Distance for factors with scopes ${phi1.scope()} and ${phi2.scope()} is not legal.")

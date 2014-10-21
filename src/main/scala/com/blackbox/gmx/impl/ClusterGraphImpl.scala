@@ -33,7 +33,7 @@ class ClusterGraphImpl(
   }
 
   override def normalized() : ClusterGraph = {
-    val g = graph.mapVertices[Factor]((id, f) => f.normalized())
+    val g = graph.mapVertices[Factor]((id, f) => f.normalized()).cache()
     new ClusterGraphImpl(g)
   }
 
@@ -81,7 +81,6 @@ object ClusterGraphImpl {
       val x: Set[Variable] = v1._2.scope & v2._2.scope
       if (v1 != v2 && x.nonEmpty) {
         edge += Edge(v1._1, v2._1, x)
-        edge += Edge(v2._1, v1._1, x)
       }
       }))
     val rddEdge : RDD[Edge[Set[Variable]]] = sc.parallelize(edge)
