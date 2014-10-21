@@ -47,4 +47,12 @@ object ClusterGraph {
     ClusterGraphImpl(factors, sc)
   }
 
+  def apply(clusters: Set[Set[Variable]], factors: Set[Factor], sc: SparkContext) : ClusterGraph = {
+    ClusterGraphImpl(clusters, factors, sc)
+  }
+
+  def apply(clusters: Map[Set[Variable], Set[Factor]], sc: SparkContext) : ClusterGraph = {
+    ClusterGraphImpl(clusters, sc)
+  }
+
 }
