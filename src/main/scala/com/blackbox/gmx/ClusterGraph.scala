@@ -44,15 +44,11 @@ object ClusterGraph {
    * @return Bethe Cluster Graph with given factors
    */
   def apply(factors: Set[Factor], sc : SparkContext) : ClusterGraph = {
-    ClusterGraphImpl(factors, sc)
+    ClusterGraphImpl.bethe(factors, sc)
   }
 
-  def apply(clusters: Set[Set[Variable]], factors: Set[Factor], sc: SparkContext) : ClusterGraph = {
-    ClusterGraphImpl(clusters, factors, sc)
-  }
-
-  def apply(clusters: Map[Set[Variable], Set[Factor]], sc: SparkContext) : ClusterGraph = {
-    ClusterGraphImpl(clusters, sc)
+  def apply(clusters: Map[Set[Variable], Set[Factor]], edges: Set[(Set[Variable], Set[Variable])], sc: SparkContext) : ClusterGraph = {
+    ClusterGraphImpl(clusters, edges, sc)
   }
 
 }

@@ -7,7 +7,7 @@ import org.apache.spark.{SparkContext, SparkConf}
 /**
  * Created by guillermoblascojimenez on 21/10/14.
  */
-object StudentChain {
+object StudentTree {
 
   def main(args: Array[String]) = {
     val conf = new SparkConf().setAppName("StudentChain")
@@ -70,7 +70,12 @@ object StudentChain {
       Set[Variable](grade, letter) -> Set[Factor](letterGivenGrade)
     )
 
-    ClusterGraph(clusters, sc)
+    val edges = Set[(Set[Variable], Set[Variable])](
+      (Set(difficulty)    , Set(grade, difficulty, intelligence)),
+      (Set(sat, intelligence)    , Set(grade, difficulty, intelligence)),
+      (Set(grade, letter) , Set(grade, difficulty, intelligence))
+    )
+    ClusterGraph(clusters, edges, sc)
   }
 
 }

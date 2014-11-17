@@ -28,7 +28,7 @@ object Factor {
   def apply(variable: Variable) : Factor = apply(Set[Variable](variable))
   def apply(variables: Variable*) : Factor = apply(variables.toSet)
   def apply(variables: Set[Variable]) : Factor = ArrayFactor(variables)
-  def constantFactor(variables: Set[Variable], constant: Double) : Factor = ArrayFactor(variables, constant)
+  def constant(variables: Set[Variable], constant: Double) : Factor = ArrayFactor(variables, constant)
   def uniform(variables: Set[Variable]) : Factor = ArrayFactor(variables, 1.0).normalized()
   def randomized(variables: Set[Variable]): ArrayFactor = ArrayFactor(variables, math.random)
   def distance(phi1: Factor, phi2: Factor) : Double = {

@@ -49,65 +49,72 @@ object ClusterGraphImpl {
    *
    * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Section 11.3.5.2 (page 405)
    */
-  def apply(factors: Set[Factor], sc : SparkContext) : ClusterGraphImpl = {
+  def bethe(factors: Set[Factor], sc : SparkContext) : ClusterGraphImpl = {
 
     // get the scopes of all factors
     val scopes = factors.map(factor => factor.scope()).toSet
     // generate the unary scopes. eg X = {x,y,z} => {{x}, {y}, {z}}
     val unaryScopes = scopes.aggregate(Set[Variable]())(_ ++ _, _ ++ _).map(v => Set(v))
     // the clusters is the join of actual scopes and unary scopes
-    val clusters = scopes ++ unaryScopes
+    val clusters = aggergateFactors(factors.groupBy((f) => f.scope())) ++ unaryScopes.map(s => s -> Factor.uniform(s)).toMap
 
-    apply(clusters, factors, sc)
+    val edges:mutable.HashSet[(Set[Variable], Set[Variable])] = mutable.HashSet()
+
+    unaryScopes foreach(unaryScope => {
+      scopes foreach (scope => {
+        if (scope.intersect(unaryScope).nonEmpty) {
+          edges += ((unaryScope, scope))
+        }
+      })
+    })
+
+    applyRaw(clusters, processEdges(edges.toSet), sc)
   }
 
-  /**
-   * Generates a new cluster graph with the topology given by the clusters. There have to be
-   * for each factor a cluster that matches exactly its scope.
-   * @param clusters
-   * @param factors
-   * @param sc
-   * @return
-   */
-  def apply(clusters: Set[Set[Variable]], factors: Set[Factor], sc: SparkContext) : ClusterGraphImpl = {
+  def apply
+  (clusters: Map[Set[Variable], Set[Factor]],
+   edges: Set[(Set[Variable], Set[Variable])],
+   sc: SparkContext) : ClusterGraphImpl = {
 
-    // set of all variables
-    val X: Set[Variable] = clusters.aggregate(Set[Variable]())(_ ++ _, _ ++ _).toSet
-
-    // put in each cluster a factor
-    val clusterToFactor: mutable.Map[Set[Variable], Factor] = mutable.Map[Set[Variable], Factor]()
-    // start with uniform factors
-    clusters foreach (cluster => clusterToFactor.put(cluster, Factor.uniform(cluster)))
-    // and then put each factor in its cluster
-    factors foreach (factor => clusterToFactor.update(factor.scope(), clusterToFactor.get(factor.scope()).get * factor))
-
-    applyRaw(clusterToFactor.toMap, sc)
-  }
-
-  def apply(clusters: Map[Set[Variable], Set[Factor]], sc: SparkContext) : ClusterGraphImpl = {
     val aggClusters = clusters map {
-      case (scope, factorSet) => (scope, factorSet.aggregate(Factor.constantFactor(scope, 1.0))(_ * _, _ * _))
+      case (scope, factorSet) => (scope, factorSet.aggregate(Factor.constant(scope, 1.0))(_ * _, _ * _))
     }
-    applyRaw(aggClusters, sc)
+    applyRaw(aggClusters, processEdges(edges), sc)
   }
 
-  private def applyRaw(clusters: Map[Set[Variable], Factor], sc:SparkContext) : ClusterGraphImpl = {
+  private def aggergateFactors(f: Map[Set[Variable],Set[Factor]]) : Map[Set[Variable],Factor] = {
+    f.map({
+      case (scope, factorSet) => (scope, factorSet.aggregate(Factor.constant(scope, 1.0))(_ * _, _ * _))
+    })
+  }
 
+  private def processEdges(edges: Set[(Set[Variable], Set[Variable])]) : List[(Set[Variable], Set[Variable])] = {
+    val edgeList : mutable.MutableList[(Set[Variable], Set[Variable])] = new mutable.MutableList()
+    edges foreach (e => {
+      edgeList += e
+      edgeList += e.swap
+    })
+    edgeList.toList
+  }
+
+  private def applyRaw
+    (clusters: Map[Set[Variable], Factor],
+    // Edges as a set of pairs of nodes, where a pair is a set and each node is also a set.
+     edges: List[(Set[Variable], Set[Variable])],
+     sc:SparkContext) : ClusterGraphImpl = {
     // generate the vertexs as (id, factor) pairs where each factor works represents a cluster.
-    val vertex: Array[(VertexId, Factor)] = ((0 until clusters.size).map((i) => i.toLong) zip clusters.values.toList).toArray
+    val vertexs: Array[(VertexId, Factor)] = ((0 until clusters.size).map((i) => i.toLong) zip clusters.values.toList).toArray
 
+    vertexs.map(v => v._2 -> v._1).toMap
+    val vertexMap : Map[Set[Variable], VertexId] = vertexs.map(v => v._2.scope() -> v._1).toMap
     // generate edges as the intersection of clusters
-    val edge : mutable.MutableList[Edge[Set[Variable]]] = new mutable.MutableList()
-    vertex foreach (v1 => vertex foreach (v2 => {
-      val x: Set[Variable] = v1._2.scope() & v2._2.scope()
-      if (v1 != v2 && x.nonEmpty) {
-        edge += Edge(v1._1, v2._1, x)
-      }
-    }))
+    val newEdges = edges.map({
+      case (set1, set2) => Edge(vertexMap(set1), vertexMap(set2), set1.intersect(set2))
+    })
 
     // generate RDD
-    val rddEdge : RDD[Edge[Set[Variable]]] = sc.parallelize(edge.toList)
-    val rddVertex : RDD[(VertexId, Factor)] = sc.parallelize(vertex)
+    val rddEdge : RDD[Edge[Set[Variable]]] = sc.parallelize(newEdges.toList)
+    val rddVertex : RDD[(VertexId, Factor)] = sc.parallelize(vertexs)
 
     // return cluster graph structure
     new ClusterGraphImpl(Graph[Factor, Set[Variable]](rddVertex, rddEdge, null))
