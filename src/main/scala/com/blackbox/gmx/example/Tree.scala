@@ -10,7 +10,10 @@ import org.apache.spark.{SparkContext, SparkConf}
 object Tree {
 
   def main(args: Array[String]) = {
-    val conf = new SparkConf().setAppName("StudentChain")
+    val conf = new SparkConf()
+      .setAppName("StudentChain")
+      .setMaster("local[1]")
+      .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     val sc: SparkContext = new SparkContext(conf)
     execute(sc)
   }
@@ -18,7 +21,6 @@ object Tree {
   def execute(sc: SparkContext) = {
 
     val clusterGraph = buildGraph(sc)
-
     OperationExamples.marginalizeAndMap(clusterGraph)
   }
 
@@ -70,11 +72,11 @@ object Tree {
     )
     
     val edges = Set[(Set[Variable], Set[Variable])](
-      (Set(a)    , Set(a, b)),
-      (Set(b)    , Set(a, b)),
-      (Set(a, b) , Set(b, c)),
-      (Set(b, c) , Set(b, e)),
-      (Set(b, e) , Set(e, d))
+      (Set(a)    , Set(a, b)), // intersection: a
+      (Set(b)    , Set(a, b)), // intersection: b
+      (Set(a, b) , Set(b, c)), // intersection: b
+      (Set(b, c) , Set(b, e)), // intersection: b
+      (Set(b, e) , Set(e, d))  // intersection: e
     )
 
     ClusterGraph(clusters, edges, sc)

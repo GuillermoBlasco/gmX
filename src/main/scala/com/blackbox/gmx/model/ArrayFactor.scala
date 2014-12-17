@@ -30,8 +30,11 @@ class ArrayFactor
   }
 
   override def /(c: Double): Factor = {
-    assert(c > 0)
-    new ArrayFactor(scope, strides, values.transform((v : Double) => v / c).toArray)
+    assert(c >= 0)
+    if (c > 0)
+      new ArrayFactor(scope, strides, values.transform((v : Double) => v / c).toArray)
+    else
+      new ArrayFactor(scope, strides, Array.fill[Double](size())(0.0))
   }
 
   override def log(): LogFactor = new ArrayLogFactor(scope, strides, values.transform((v: Double) => Math.log(v)).toArray)
@@ -72,7 +75,14 @@ class ArrayFactor
 
   override def toString : String = s"ArrayFactor [${super.toString}]"
 
-  override def inverse(): Factor = new ArrayFactor(scope, strides, values.transform((v: Double) => 1.0 / v).toArray)
+  override def inverse(): Factor = new ArrayFactor(scope, strides, values.transform((v: Double) => {
+    if (v != 0) {
+      1.0 / v
+    } else {
+      0.0
+    }
+  }
+  ).toArray)
 
 }
 protected object ArrayFactor {

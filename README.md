@@ -17,5 +17,5 @@ Execute:
 Ensure that `SPARK_HOME` is set to spark home. Execute in console:
 
     $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.Sprinkler" --master local[1] target/gmx-core-1.0.0-SNAPSHOT.jar
-    $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.Student" --master local[4] target/gmx-core-1.0.0-SNAPSHOT.jar
+    $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.StudentTree" --master local[4] target/gmx-core-1.0.0-SNAPSHOT.jar
     $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.SmallMarkov" --master local[4] target/gmx-core-1.0.0-SNAPSHOT.jar

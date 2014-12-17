@@ -77,7 +77,11 @@ object ClusterGraphImpl {
    sc: SparkContext) : ClusterGraphImpl = {
 
     val aggClusters = clusters map {
-      case (scope, factorSet) => (scope, factorSet.aggregate(Factor.constant(scope, 1.0))(_ * _, _ * _))
+      case (scope, factorSet) => {
+        (scope,
+          factorSet.aggregate(Factor.constant(scope, 1.0))(_ * _, _ * _)
+          )
+      }
     }
     applyRaw(aggClusters, processEdges(edges), sc)
   }
@@ -107,10 +111,12 @@ object ClusterGraphImpl {
 
     vertexs.map(v => v._2 -> v._1).toMap
     val vertexMap : Map[Set[Variable], VertexId] = vertexs.map(v => v._2.scope() -> v._1).toMap
+    println(vertexMap)
     // generate edges as the intersection of clusters
     val newEdges = edges.map({
       case (set1, set2) => Edge(vertexMap(set1), vertexMap(set2), set1.intersect(set2))
     })
+    println(newEdges)
 
     // generate RDD
     val rddEdge : RDD[Edge[Set[Variable]]] = sc.parallelize(newEdges.toList)

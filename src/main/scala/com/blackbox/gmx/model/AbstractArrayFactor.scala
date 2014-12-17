@@ -72,11 +72,13 @@ protected object AbstractArrayFactor {
     var k = 0
     for (i <- 0 until psi.size) {
       psi.values(i) = op(phi1.values(j), phi2.values(k))
-      X foreach { case (v) =>
-        breakable {
+      breakable {
+        X foreach { case (v) =>
           assignment(v) = assignment(v) + 1
           if (assignment(v) equals v.cardinality) {
             assignment(v) = 0
+            val phi1vStride = phi1.strides.getOrElse(v, 0)
+            val phi2vStride = phi2.strides.getOrElse(v, 0)
             j = j - (v.cardinality - 1) * phi1.strides.getOrElse(v, 0)
             k = k - (v.cardinality - 1) * phi2.strides.getOrElse(v, 0)
           } else {

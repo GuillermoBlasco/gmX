@@ -13,12 +13,12 @@ object BeliefPropagation extends Logging {
    * Additional structure for BP
    */
 
-  private class BPVertex (val factor: Factor, val deltas: Factor) extends java.io.Serializable {
+  private class BPVertex (val factor: Factor, val potential: Factor) extends java.io.Serializable {
 
   }
   private object BPVertex {
     def apply(factor:Factor) : BPVertex = apply(factor, Factor.uniform(factor.scope()))
-    def apply(factor:Factor, deltas: Factor) : BPVertex = new BPVertex(factor, deltas)
+    def apply(factor:Factor, potential: Factor) : BPVertex = new BPVertex(factor, potential)
   }
 
   /*
@@ -37,7 +37,7 @@ object BeliefPropagation extends Logging {
   private def toClusterGraph
     (graph: Graph[BPVertex, Factor])
     : Graph[Factor, Set[Variable]] = {
-    graph.mapVertices((id, v) => (v.factor * v.deltas).normalized()).mapEdges((edge) => edge.attr.scope())
+    graph.mapVertices((id, v) => (v.factor * v.potential).normalized()).mapEdges((edge) => edge.attr.scope())
   }
 
   private def reduceDeltas(d1: Factor, d2: Factor) : Factor = d1 * d2
@@ -60,15 +60,14 @@ object BeliefPropagation extends Logging {
 
     println(s"BP epsilon $epsilon and maxIters $maxIterations")
     // deltas are set
-    var g: Graph[BPVertex, Factor] = toBPGraph(graph)
-    // set potentials accordingly to these initial deltas
-    g = g.outerJoinVertices(g.mapReduceTriplets((triplet) => Iterator((triplet.dstId, triplet.attr)), reduceDeltas))((id, vertex, phi) => BPVertex(vertex.factor, phi.get)).cache()
-
+    var g: Graph[BPVertex, Factor] = toBPGraph(graph).cache()
 
     var iteration: Int = 0
     var iterationError: Double = Double.PositiveInfinity
 
     do {
+      println()
+      println("==============================================")
       println(s"Iteration $iteration starts")
 
       // compute new deltas
@@ -77,37 +76,31 @@ object BeliefPropagation extends Logging {
       // Trick: for each edge i->j set as potential j_factor * j_potential / i->j_potential and then reverse all edges
       val newDeltas = g
         // for each node compute i_factor * i_potential
-        .mapVertices((id, vertex) => vertex.factor * vertex.deltas)
+        .mapVertices((id, vertex) => vertex.factor * vertex.potential)
         // for each edge i->j compute j_factor * j_potential / i->j_potential
-        .mapTriplets((triplet) => projection(triplet.dstAttr / triplet.attr, triplet.attr.scope()).normalized())
+        .mapTriplets((triplet) => projection(triplet.dstAttr / triplet.attr, triplet.attr.scope()))
         // reverse so the edge j->i now contains j_factor * j_potential / i->j_potential
         .reverse
         .cache()
-
 
       // Compute new potentials and put them into a new graph
       // for each node i collect incoming edges and update as:
       //    i_potential := PRODUCT [j->i_potential, for j in N(i)]
       val newPotentials = newDeltas
         .mapReduceTriplets((triplet) => Iterator((triplet.dstId, triplet.attr)), reduceDeltas)
-        .cache()
+
       val newG = newDeltas
-        .outerJoinVertices(newPotentials)((id, vertex, phi) => BPVertex(vertex, phi.get))
+        .outerJoinVertices(g.vertices)((id, vertex, phi) => BPVertex(phi.get.factor))
+        .outerJoinVertices(newPotentials)((id, vertex, phi) => BPVertex(vertex.factor, phi.get))
         .cache()
 
-      // compute errors
-      iterationError = newG.edges
-        // compute error of each edge
-        .innerJoin(g.edges)((srcId, dstId, newDelta, oldDelta) => Factor.distance(newDelta.normalized(), oldDelta.normalized()))
-        // aggregate the errors
-        .aggregate(0.0)((e, errorEdge) => e + errorEdge.attr, _ + _ )
+      iterationError = newG.edges.innerJoin(g.edges)(
+        (srcId, dstId, ij, ji) => Factor.distance(ij.normalized(), ji.normalized())
+      ).aggregate(0.0)((e, errorEdge) => e + errorEdge.attr, _ + _)
 
       // unpersist things
       g.unpersistVertices(blocking = false)
       g.edges.unpersist(blocking = false)
-      newPotentials.unpersist(blocking = false)
-      newDeltas.unpersistVertices(blocking = false)
-      newDeltas.edges.unpersist(blocking = false)
 
       // update cached things
       g = newG
