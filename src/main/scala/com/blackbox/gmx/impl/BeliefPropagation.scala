@@ -17,8 +17,8 @@ object BeliefPropagation extends Logging {
 
   }
   private object BPVertex {
-    def apply(factor:Factor) : BPVertex = apply(factor, Factor.uniform(factor.scope()))
-    def apply(factor:Factor, potential: Factor) : BPVertex = new BPVertex(factor, potential)
+    def apply(factor:Factor) : BPVertex = apply(factor.copy(), Factor.uniform(factor.scope()))
+    def apply(factor:Factor, potential: Factor) : BPVertex = new BPVertex(factor.copy(), potential.copy())
   }
 
   /*
@@ -66,37 +66,25 @@ object BeliefPropagation extends Logging {
     var iterationError: Double = Double.PositiveInfinity
 
     do {
-      println()
-      println("==============================================")
-      println(s"Iteration $iteration starts")
 
-      // compute new deltas
-      // for each edge i->j generate delta as
-      //    i->j_potential := i_factor * i_potential / j->i_potential
-      // Trick: for each edge i->j set as potential j_factor * j_potential / i->j_potential and then reverse all edges
-      val newDeltas = g
-        // for each node compute i_factor * i_potential
-        .mapVertices((id, vertex) => vertex.factor * vertex.potential)
-        // for each edge i->j compute j_factor * j_potential / i->j_potential
-        .mapTriplets((triplet) => projection(triplet.dstAttr / triplet.attr, triplet.attr.scope()))
-        // reverse so the edge j->i now contains j_factor * j_potential / i->j_potential
-        .reverse
-        .cache()
+      val newG = iterate(projection)(g).cache()
 
-      // Compute new potentials and put them into a new graph
-      // for each node i collect incoming edges and update as:
-      //    i_potential := PRODUCT [j->i_potential, for j in N(i)]
-      val newPotentials = newDeltas
-        .mapReduceTriplets((triplet) => Iterator((triplet.dstId, triplet.attr)), reduceDeltas)
+      val aux1 = g.vertices.collect().map(vertex => vertex._1 -> vertex).toMap
+      for (newVertex <- newG.vertices.collect()) {
+        val oldVertex = aux1(newVertex._1)
+        println("Vertex ", newVertex._1)
+        println(newVertex._2.potential.normalized())
+        println(oldVertex._2.potential.normalized())
+      }
+      val aux2 = g.edges.collect().map(edge => (edge.dstId, edge.srcId) -> edge).toMap
+      for (newEdge <- newG.edges.collect()) {
+        val oldEdge = aux2((newEdge.dstId, newEdge.srcId))
+        println("Edge ", newEdge.dstId, " -> ", newEdge.srcId)
+        println(newEdge.attr.normalized())
+        println(oldEdge.attr.normalized())
+      }
 
-      val newG = newDeltas
-        .outerJoinVertices(g.vertices)((id, vertex, phi) => BPVertex(phi.get.factor))
-        .outerJoinVertices(newPotentials)((id, vertex, phi) => BPVertex(vertex.factor, phi.get))
-        .cache()
-
-      iterationError = newG.edges.innerJoin(g.edges)(
-        (srcId, dstId, ij, ji) => Factor.distance(ij.normalized(), ji.normalized())
-      ).aggregate(0.0)((e, errorEdge) => e + errorEdge.attr, _ + _)
+      iterationError = calibrationError(g, newG) // this instruction materializes RDDs
 
       // unpersist things
       g.unpersistVertices(blocking = false)
@@ -105,14 +93,54 @@ object BeliefPropagation extends Logging {
       // update cached things
       g = newG
       iteration += 1
-      println(s"Iteration ends with error $iterationError")
+      println(s"Iteration $iteration error $iterationError")
     } while (iteration < maxIterations && iterationError > epsilon)
 
     val outputGraph = toClusterGraph(g).cache()
+    // materialize
+    outputGraph.vertices.count()
+    outputGraph.edges.count()
     g.unpersistVertices(blocking = false)
     g.edges.unpersist(blocking = false)
     println(s"BP ended in $iteration iterations and $iterationError errors")
     outputGraph
+  }
+
+  private def calibrationError(g1 : Graph[BPVertex, Factor], g2 : Graph[BPVertex, Factor]) : Double = {
+    val iterationError = g1.edges.innerJoin(g2.edges)(
+        (srcId, dstId, ij, ji) => Factor.distance(ij.normalized(), ji.normalized())
+      ).aggregate(0.0)((e, errorEdge) => e + errorEdge.attr, _ + _)
+    iterationError
+  }
+
+  private def iterate(projection: (Factor, Set[Variable]) => Factor)(g : Graph[BPVertex, Factor]) : Graph[BPVertex, Factor] = {
+    // compute new deltas
+    // for each edge i->j generate delta as
+    //    i->j_potential := i_factor * i_potential / j->i_potential
+    // Trick: for each edge i->j set as potential j_factor * j_potential / i->j_potential and then reverse all edges
+    val newDeltas = g
+      // for each edge i->j compute j_factor * j_potential / i->j_potential
+      .mapTriplets((triplet) => {
+
+      val r = projection(
+        triplet.dstAttr.factor * (triplet.dstAttr.potential / triplet.attr
+          ), triplet.attr.scope())
+      r
+      })
+      // reverse so the edge j->i now contains j_factor * j_potential / i->j_potential
+      .reverse.cache()
+
+    // Compute new potentials and put them into a new graph
+    // for each node i collect incoming edges and update as:
+    //    i_potential := PRODUCT [j->i_potential, for j in N(i)]
+    val newPotentials = newDeltas
+      .mapReduceTriplets((triplet) => Iterator((triplet.dstId, triplet.attr)), reduceDeltas)
+
+    val newG = newDeltas
+      .outerJoinVertices(g.vertices)((id, vertex, phi) => BPVertex(phi.get.factor))
+      .outerJoinVertices(newPotentials)((id, vertex, phi) => BPVertex(vertex.factor, phi.get))
+
+     newG
   }
 
   def sum

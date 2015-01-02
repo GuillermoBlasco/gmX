@@ -26,18 +26,28 @@ class ArrayFactor
 
   override def *(c: Double): Factor = {
     assert(c > 0)
-    new ArrayFactor(scope, strides, values.transform((v : Double) => v * c).toArray)
+    val newArray = new Array[Double](values.size)
+    Array.copy(values, 0, newArray, 0, values.size)
+    new ArrayFactor(scope, strides, newArray.transform((v : Double) => v * c).toArray)
   }
+
+  override def copy() : Factor = this * Factor.constant(this.scope, 1.0)
 
   override def /(c: Double): Factor = {
     assert(c >= 0)
-    if (c > 0)
-      new ArrayFactor(scope, strides, values.transform((v : Double) => v / c).toArray)
-    else
+    if (c > 0) {
+      val newArray = new Array[Double](values.size)
+      Array.copy(values, 0, newArray, 0, values.size)
+      new ArrayFactor(scope, strides, newArray.transform((v: Double) => v / c).toArray)
+    } else
       new ArrayFactor(scope, strides, Array.fill[Double](size())(0.0))
   }
 
-  override def log(): LogFactor = new ArrayLogFactor(scope, strides, values.transform((v: Double) => Math.log(v)).toArray)
+  override def log(): LogFactor = {
+    val newArray = new Array[Double](values.size)
+    Array.copy(values, 0, newArray, 0, values.size)
+    new ArrayLogFactor(scope, strides, newArray.transform((v: Double) => Math.log(v)).toArray)
+  }
 
   override def z() : Double = values.aggregate(0.0)(_ + _, _ + _)
 
@@ -75,14 +85,18 @@ class ArrayFactor
 
   override def toString : String = s"ArrayFactor [${super.toString}]"
 
-  override def inverse(): Factor = new ArrayFactor(scope, strides, values.transform((v: Double) => {
-    if (v != 0) {
-      1.0 / v
-    } else {
-      0.0
+  override def inverse(): Factor = {
+    val newArray = new Array[Double](values.size)
+    Array.copy(values, 0, newArray, 0, values.size)
+    new ArrayFactor(scope, strides, newArray.transform((v: Double) => {
+      if (v != 0) {
+        1.0 / v
+      } else {
+        0.0
+      }
     }
+    ).toArray)
   }
-  ).toArray)
 
 }
 protected object ArrayFactor {

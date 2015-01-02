@@ -17,6 +17,7 @@ trait Factor extends Serializable {
   def marginalize(variables: Set[Variable]) : Factor
   def maxMarginal(variables: Set[Variable]) : Factor
   def maxMarginalize(variables: Set[Variable]) : Factor
+  def copy() : Factor
 
   def update(assignment : Map[Variable, Int], value: Double)
   def apply(assignment : Map[Variable, Int]) : Double

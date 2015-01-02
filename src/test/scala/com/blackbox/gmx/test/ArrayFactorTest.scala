@@ -98,6 +98,22 @@ class ArrayFactorTest extends FlatSpec {
   }
 
 
+  it should "be properly marginalized" in {
+    val e = 0.000000001
+    val a = Variable("a", 2)
+    val b = Variable("b", 2)
+    var phi = Factor(Set(a, b))
+    phi(Map(a ->0, b->0)) = 0.2
+    phi(Map(a ->0, b->1)) = 0.1
+    phi(Map(a ->1, b->0)) = 0.9
+    phi(Map(a ->1, b->1)) = 0.3
+
+    val r = phi.marginalize(Set(a))
+    assert(Math.abs(r(Map(b->0)) - 1.1) < e)
+    assert(Math.abs(r(Map(b->1)) - 0.4) < e)
+
+  }
+
   it should "have a consistent z value" in {
     val e = 0.000000001
     val a = Variable("a", 2)
