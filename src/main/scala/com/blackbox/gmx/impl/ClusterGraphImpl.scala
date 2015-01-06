@@ -18,9 +18,9 @@ class ClusterGraphImpl(
                         ) extends ClusterGraph {
 
   def this() = this(null)
-  override val factors: Set[Factor] = graph.vertices.aggregate(mutable.Set[Factor]())((s, v) => s + v._2, (s1, s2) => s1 ++ s2).toSet
+  override val factors: Set[Factor] = graph.vertices.collect().map(vertex => vertex._2).toSet
 
-  override val variables: Set[Variable] = graph.edges.aggregate(mutable.Set[Variable]())((s,e) => s ++ e.attr, (s1, s2) => s1 ++ s2).toSet
+  override val variables: Set[Variable] = factors.map(factor => factor.scope()).aggregate[Set[Variable]](Set())(_ ++ _, _ ++ _)
 
   override def calibrated(maxIterations :Int = 10, epsilon:Double = 0.1): ClusterGraph = {
     val g = BeliefPropagation.sum(maxIterations, epsilon)(graph)
@@ -111,12 +111,10 @@ object ClusterGraphImpl {
 
     vertexs.map(v => v._2 -> v._1).toMap
     val vertexMap : Map[Set[Variable], VertexId] = vertexs.map(v => v._2.scope() -> v._1).toMap
-    println(vertexMap)
     // generate edges as the intersection of clusters
     val newEdges = edges.map({
       case (set1, set2) => Edge(vertexMap(set1), vertexMap(set2), set1.intersect(set2))
     })
-    println(newEdges)
 
     // generate RDD
     val rddEdge : RDD[Edge[Set[Variable]]] = sc.parallelize(newEdges.toList)

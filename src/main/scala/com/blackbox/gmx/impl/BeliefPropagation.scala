@@ -58,7 +58,6 @@ object BeliefPropagation extends Logging {
     assert(maxIterations > 0)
     assert(epsilon > 0.0)
 
-    println(s"BP epsilon $epsilon and maxIters $maxIterations")
     // deltas are set
     var g: Graph[BPVertex, Factor] = toBPGraph(graph).cache()
 
@@ -68,22 +67,6 @@ object BeliefPropagation extends Logging {
     do {
 
       val newG = iterate(projection)(g).cache()
-
-      val aux1 = g.vertices.collect().map(vertex => vertex._1 -> vertex).toMap
-      for (newVertex <- newG.vertices.collect()) {
-        val oldVertex = aux1(newVertex._1)
-        println("Vertex ", newVertex._1)
-        println(newVertex._2.potential.normalized())
-        println(oldVertex._2.potential.normalized())
-      }
-      val aux2 = g.edges.collect().map(edge => (edge.dstId, edge.srcId) -> edge).toMap
-      for (newEdge <- newG.edges.collect()) {
-        val oldEdge = aux2((newEdge.dstId, newEdge.srcId))
-        println("Edge ", newEdge.dstId, " -> ", newEdge.srcId)
-        println(newEdge.attr.normalized())
-        println(oldEdge.attr.normalized())
-      }
-
       iterationError = calibrationError(g, newG) // this instruction materializes RDDs
 
       // unpersist things
@@ -93,7 +76,7 @@ object BeliefPropagation extends Logging {
       // update cached things
       g = newG
       iteration += 1
-      println(s"Iteration $iteration error $iterationError")
+
     } while (iteration < maxIterations && iterationError > epsilon)
 
     val outputGraph = toClusterGraph(g).cache()
@@ -102,7 +85,6 @@ object BeliefPropagation extends Logging {
     outputGraph.edges.count()
     g.unpersistVertices(blocking = false)
     g.edges.unpersist(blocking = false)
-    println(s"BP ended in $iteration iterations and $iterationError errors")
     outputGraph
   }
 

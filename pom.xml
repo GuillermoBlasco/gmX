@@ -113,6 +113,12 @@
           <version>2.2.1</version>
           <scope>test</scope>
       </dependency>
+      <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.11</version>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
 
   <build>
@@ -176,7 +182,7 @@
           <configuration>
             <scalaVersion>${scala.version}</scalaVersion>
             <recompileMode>incremental</recompileMode>
-            <useZincServer>true</useZincServer>
+            <useZincServer>false</useZincServer>
             <args>
               <arg>-unchecked</arg>
               <arg>-deprecation</arg>
@@ -223,7 +229,7 @@
           <version>2.17</version>
           <configuration>
             <!-- Uses scalatest instead -->
-            <skipTests>true</skipTests>
+            <skipTests>false</skipTests>
           </configuration>
         </plugin>
         <plugin>
@@ -233,7 +239,7 @@
             <configuration>
                 <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
                 <junitxml>.</junitxml>
-                <filereports>WDF TestSuite.txt</filereports>
+                <filereports>TestSuiteReport.txt</filereports>
             </configuration>
             <executions>
                 <execution>

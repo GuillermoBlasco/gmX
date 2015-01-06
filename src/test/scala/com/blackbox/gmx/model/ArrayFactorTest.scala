@@ -1,11 +1,14 @@
-package com.blackbox.gmx.test
+package com.blackbox.gmx.model
 
 import com.blackbox.gmx.model.{Factor, Variable}
+import org.junit.runner.RunWith
 import org.scalatest.FlatSpec
+import org.scalatest.junit.JUnitRunner
 
 /**
  * Created by guillermoblascojimenez on 17/12/14.
  */
+@RunWith(classOf[JUnitRunner])
 class ArrayFactorTest extends FlatSpec {
 
   "An ArrayFactor" should "create uniform factors" in {
