@@ -79,7 +79,7 @@ object BeliefPropagation extends Logging {
       val aux2 = g.edges.collect().map(edge => (edge.dstId, edge.srcId) -> edge).toMap
       for (newEdge <- newG.edges.collect()) {
         val oldEdge = aux2((newEdge.dstId, newEdge.srcId))
-        println("Edge ", newEdge.dstId, " -> ", newEdge.srcId)
+        println("Edge ", newEdge.srcId, " -> ", newEdge.dstId)
         println(newEdge.attr.normalized())
         println(oldEdge.attr.normalized())
       }
