@@ -20,7 +20,8 @@ class ClusterGraphImpl(
   def this() = this(null)
   override val factors: Set[Factor] = graph.vertices.collect().map(vertex => vertex._2).toSet
 
-  override val variables: Set[Variable] = factors.map(factor => factor.scope()).aggregate[Set[Variable]](Set())(_ ++ _, _ ++ _)
+  override val variables: Set[Variable] =
+    factors.map(factor => factor.scope()).aggregate[Set[Variable]](Set())(_ ++ _, _ ++ _)
 
   override def calibrated(maxIterations :Int = 10, epsilon:Double = 0.1): ClusterGraph = {
     val g = BeliefPropagation.sum(maxIterations, epsilon)(graph)
@@ -56,7 +57,9 @@ object ClusterGraphImpl {
     // generate the unary scopes. eg X = {x,y,z} => {{x}, {y}, {z}}
     val unaryScopes = scopes.aggregate(Set[Variable]())(_ ++ _, _ ++ _).map(v => Set(v))
     // the clusters is the join of actual scopes and unary scopes
-    val clusters = aggergateFactors(factors.groupBy((f) => f.scope())) ++ unaryScopes.map(s => s -> Factor.uniform(s)).toMap
+    val variablesFromFactors = aggergateFactors(factors.groupBy((f) => f.scope()))
+    val unaryVariables = unaryScopes.map(s => s -> Factor.uniform(s))
+    val clusters = (variablesFromFactors ++ unaryVariables).toMap
 
     val edges:mutable.HashSet[(Set[Variable], Set[Variable])] = mutable.HashSet()
 
@@ -107,7 +110,9 @@ object ClusterGraphImpl {
      edges: List[(Set[Variable], Set[Variable])],
      sc:SparkContext) : ClusterGraphImpl = {
     // generate the vertexs as (id, factor) pairs where each factor works represents a cluster.
-    val vertexs: Array[(VertexId, Factor)] = ((0 until clusters.size).map((i) => i.toLong) zip clusters.values.toList).toArray
+    val vertexs: Array[(VertexId, Factor)] =
+      ((0 until clusters.size).map((i) => i.toLong) zip clusters.values.toList)
+        .toArray
 
     vertexs.map(v => v._2 -> v._1).toMap
     val vertexMap : Map[Set[Variable], VertexId] = vertexs.map(v => v._2.scope() -> v._1).toMap

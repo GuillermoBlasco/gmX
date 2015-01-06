@@ -18,7 +18,10 @@ class ArrayFactor
       case phi2: ArrayFactor =>
         ArrayFactor.product(this, phi2)
       case _ =>
-        throw new UnsupportedOperationException(s"Can not multiply factor of class ${factor.getClass} with this factor of class ${this.getClass}")
+        throw new UnsupportedOperationException(
+          s"Can not multiply factor of class ${factor.getClass} " +
+          s"with this factor of class ${this.getClass}"
+        )
     }
   }
 
@@ -39,8 +42,9 @@ class ArrayFactor
       val newArray = new Array[Double](values.size)
       Array.copy(values, 0, newArray, 0, values.size)
       new ArrayFactor(scope, strides, newArray.transform((v: Double) => v / c).toArray)
-    } else
+    } else {
       new ArrayFactor(scope, strides, Array.fill[Double](size())(0.0))
+    }
   }
 
   override def log(): LogFactor = {
@@ -107,8 +111,12 @@ protected object ArrayFactor {
   }
   def apply(variables: Set[Variable], valueFactory: => Double) : ArrayFactor = {
     val size = variables.foldLeft(1)((z,v) => z * v.cardinality)
-    new ArrayFactor(variables, AbstractArrayFactor.computeStrides(variables), Array.fill[Double](size)(valueFactory))
+    new ArrayFactor(
+      variables,
+      AbstractArrayFactor.computeStrides(variables),
+      Array.fill[Double](size)(valueFactory))
   }
+
   /*
    * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 10.A.1 (page 359)
    */
@@ -127,4 +135,5 @@ protected object ArrayFactor {
     assert(phi1.scope == phi2.scope)
     (phi1.values zip phi2.values).aggregate[Double](0.0)((v, p) => v + Math.pow(p._1 - p._2, 2), (v1, v2) => v1 + v2)
   }
+
 }

@@ -37,7 +37,10 @@ protected class AbstractArrayFactor(
     assignment.transform((v, s) => (index / s) % v.cardinality).toMap
   }
 
-  override def toString: String = s"AbstractArrayFactor with scope {${scope.mkString(",")}} and values {${values.mkString(",")}}"
+  override def toString: String =
+    s"AbstractArrayFactor with scope {${scope.mkString(",")}}" +
+    s" and values {${values.mkString(",")}}"
+
 }
 protected object AbstractArrayFactor {
 

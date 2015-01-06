@@ -95,11 +95,14 @@ object BeliefPropagation extends Logging {
     iterationError
   }
 
-  private def iterate(projection: (Factor, Set[Variable]) => Factor)(g : Graph[BPVertex, Factor]) : Graph[BPVertex, Factor] = {
+  private def iterate
+    (projection: (Factor, Set[Variable]) => Factor)
+    (g : Graph[BPVertex, Factor]) : Graph[BPVertex, Factor] = {
     // compute new deltas
     // for each edge i->j generate delta as
     //    i->j_potential := i_factor * i_potential / j->i_potential
-    // Trick: for each edge i->j set as potential j_factor * j_potential / i->j_potential and then reverse all edges
+    // Trick: for each edge i->j set as potential j_factor * j_potential / i->j_potential and then
+    // reverse all edges
     val newDeltas = g
       // for each edge i->j compute j_factor * j_potential / i->j_potential
       .mapTriplets((triplet) => {
@@ -128,9 +131,13 @@ object BeliefPropagation extends Logging {
   def sum
     (maxIterations: Int,
      epsilon: Double)
-    (graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(sumProjection, maxIterations, epsilon)(graph)
+    (graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] =
+    apply(sumProjection, maxIterations, epsilon)(graph)
+
   def max
     (maxIterations: Int,
      epsilon: Double)
-    (graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] = apply(maxProjection, maxIterations, epsilon)(graph)
+    (graph : Graph[Factor, Set[Variable]]) : Graph[Factor, Set[Variable]] =
+    apply(maxProjection, maxIterations, epsilon)(graph)
+
 }

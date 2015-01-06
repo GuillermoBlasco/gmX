@@ -25,6 +25,9 @@ trait Variable extends Serializable with Comparable[Variable]{
   override def compareTo(v : Variable) : Int = id.compareTo(v.id)
 
 }
+
 object Variable {
+
   def apply(id: String, size: Int): Variable = new VariableImpl(id, size)
+
 }

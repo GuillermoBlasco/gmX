@@ -35,6 +35,7 @@ abstract class ClusterGraph protected () extends Serializable {
   def countClusters() : Long
 
 }
+
 object ClusterGraph {
 
   /**
@@ -47,7 +48,10 @@ object ClusterGraph {
     ClusterGraphImpl.bethe(factors, sc)
   }
 
-  def apply(clusters: Map[Set[Variable], Set[Factor]], edges: Set[(Set[Variable], Set[Variable])], sc: SparkContext) : ClusterGraph = {
+  def apply
+    (clusters: Map[Set[Variable], Set[Factor]],
+     edges: Set[(Set[Variable], Set[Variable])],
+     sc: SparkContext) : ClusterGraph = {
     ClusterGraphImpl(clusters, edges, sc)
   }
 
