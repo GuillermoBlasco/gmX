@@ -33,7 +33,8 @@ protected class AbstractArrayFactor(
    */
   protected def assignmentOfIndex(index: Int) : Map[Variable, Int] = {
     assert(index >= 0 && index < size)
-    strides.transform((v, s) => (index / s) % v.cardinality).toMap
+    val assignment = collection.mutable.Map[Variable,Int]() ++= strides
+    assignment.transform((v, s) => (index / s) % v.cardinality).toMap
   }
 
   override def toString: String = s"AbstractArrayFactor with scope {${scope.mkString(",")}} and values {${values.mkString(",")}}"
@@ -63,6 +64,7 @@ protected object AbstractArrayFactor {
     val X1 = phi1.scope
     val X2 = phi2.scope
     val X: Set[Variable] = X1 ++ X2
+    val sortedX = X.toList.sorted
     assert(X.equals(psi.scope))
     val assignment: mutable.Map[Variable, Int] = mutable.HashMap[Variable, Int]()
     for (v <- X) {
@@ -73,7 +75,7 @@ protected object AbstractArrayFactor {
     for (i <- 0 until psi.size) {
       psi.values(i) = op(phi1.values(j), phi2.values(k))
       breakable {
-        X foreach { case (v) =>
+        sortedX foreach { case (v) =>
           assignment(v) = assignment(v) + 1
           if (assignment(v) equals v.cardinality) {
             assignment(v) = 0

@@ -96,6 +96,25 @@ class ArrayFactorTest extends FlatSpec {
     assert(Math.abs(r(Map(a->1, b->1)) - 0.6) < e)
 
   }
+  it should "be multiplied properly against other factor with different scope 2" in {
+    val e = 0.000000001
+    val a = Variable("a", 2)
+    val b = Variable("b", 2)
+    var phi = Factor(Set(b))
+    phi(Map(b->0)) = 0.1
+    phi(Map(b->1)) = 0.4
+
+    var psi = Factor(Set(a))
+    psi(Map(a ->0)) = 0.6
+    psi(Map(a ->1)) = 0.4
+
+    val r = phi * psi
+    assert(Math.abs(r(Map(a->0, b->0)) - 0.6*0.1) < e)
+    assert(Math.abs(r(Map(a->0, b->1)) - 0.6*0.4) < e)
+    assert(Math.abs(r(Map(a->1, b->0)) - 0.4*0.1) < e)
+    assert(Math.abs(r(Map(a->1, b->1)) - 0.4*0.4) < e)
+
+  }
 
 
   it should "be properly marginalized" in {
