@@ -43,14 +43,8 @@ class ArrayFactor
       Array.copy(values, 0, newArray, 0, values.size)
       new ArrayFactor(scope, strides, newArray.transform((v: Double) => v / c).toArray)
     } else {
-      new ArrayFactor(scope, strides, Array.fill[Double](size())(0.0))
+      new ArrayFactor(scope, strides, Array.fill[Double](size)(0.0))
     }
-  }
-
-  override def log(): LogFactor = {
-    val newArray = new Array[Double](values.size)
-    Array.copy(values, 0, newArray, 0, values.size)
-    new ArrayLogFactor(scope, strides, newArray.transform((v: Double) => Math.log(v)).toArray)
   }
 
   override def z() : Double = values.aggregate(0.0)(_ + _, _ + _)

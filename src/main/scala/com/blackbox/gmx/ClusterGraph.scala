@@ -48,6 +48,13 @@ object ClusterGraph {
     ClusterGraphImpl.bethe(factors, sc)
   }
 
+  /**
+   * Builds a Cluster graph with the given properties.
+   * @param clusters A map where the keys are the clusters and the values are the set of factors attached to the cluster
+   * @param edges Edges as a set of pairs of keys of the cluster map
+   * @param sc Spark context
+   * @return
+   */
   def apply
     (clusters: Map[Set[Variable], Set[Factor]],
      edges: Set[(Set[Variable], Set[Variable])],

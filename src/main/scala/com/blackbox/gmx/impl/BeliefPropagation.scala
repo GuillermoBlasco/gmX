@@ -17,7 +17,7 @@ object BeliefPropagation extends Logging {
 
   }
   private object BPVertex {
-    def apply(factor:Factor) : BPVertex = apply(factor.copy(), Factor.uniform(factor.scope()))
+    def apply(factor:Factor) : BPVertex = apply(factor.copy(), Factor.uniform(factor.scope))
     def apply(factor:Factor, potential: Factor) : BPVertex = new BPVertex(factor.copy(), potential.copy())
   }
 
@@ -37,7 +37,7 @@ object BeliefPropagation extends Logging {
   private def toClusterGraph
     (graph: Graph[BPVertex, Factor])
     : Graph[Factor, Set[Variable]] = {
-    graph.mapVertices((id, v) => (v.factor * v.potential).normalized()).mapEdges((edge) => edge.attr.scope())
+    graph.mapVertices((id, v) => (v.factor * v.potential).normalized()).mapEdges((edge) => edge.attr.scope)
   }
 
   private def reduceDeltas(d1: Factor, d2: Factor) : Factor = d1 * d2
@@ -109,7 +109,7 @@ object BeliefPropagation extends Logging {
 
       val r = projection(
         triplet.dstAttr.factor * (triplet.dstAttr.potential / triplet.attr
-          ), triplet.attr.scope())
+          ), triplet.attr.scope)
       r
       })
       // reverse so the edge j->i now contains j_factor * j_potential / i->j_potential

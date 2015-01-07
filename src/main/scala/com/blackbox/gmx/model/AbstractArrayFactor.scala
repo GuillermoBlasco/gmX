@@ -13,7 +13,7 @@ protected class AbstractArrayFactor(
                            protected val values: Array[Double]
                            ) {
 
-  def size() : Int = scope.foldLeft(1)((z,v) => z * v.cardinality)
+  val size : Int = scope.foldLeft(1)((z,v) => z * v.cardinality)
 
   def update(assignment: Map[Variable, Int], value: Double) = values(indexOfAssignment(assignment)) = value
 

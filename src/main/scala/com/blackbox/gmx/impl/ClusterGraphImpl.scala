@@ -21,7 +21,7 @@ class ClusterGraphImpl(
   override val factors: Set[Factor] = graph.vertices.collect().map(vertex => vertex._2).toSet
 
   override val variables: Set[Variable] =
-    factors.map(factor => factor.scope()).aggregate[Set[Variable]](Set())(_ ++ _, _ ++ _)
+    factors.map(factor => factor.scope).aggregate[Set[Variable]](Set())(_ ++ _, _ ++ _)
 
   override def calibrated(maxIterations :Int = 10, epsilon:Double = 0.1): ClusterGraph = {
     val g = BeliefPropagation.sum(maxIterations, epsilon)(graph)
@@ -53,11 +53,11 @@ object ClusterGraphImpl {
   def bethe(factors: Set[Factor], sc : SparkContext) : ClusterGraphImpl = {
 
     // get the scopes of all factors
-    val scopes = factors.map(factor => factor.scope()).toSet
+    val scopes = factors.map(factor => factor.scope).toSet
     // generate the unary scopes. eg X = {x,y,z} => {{x}, {y}, {z}}
     val unaryScopes = scopes.aggregate(Set[Variable]())(_ ++ _, _ ++ _).map(v => Set(v))
     // the clusters is the join of actual scopes and unary scopes
-    val variablesFromFactors = aggergateFactors(factors.groupBy((f) => f.scope()))
+    val variablesFromFactors = aggergateFactors(factors.groupBy((f) => f.scope))
     val unaryVariables = unaryScopes.map(s => s -> Factor.uniform(s))
     val clusters = (variablesFromFactors ++ unaryVariables).toMap
 
@@ -115,7 +115,7 @@ object ClusterGraphImpl {
         .toArray
 
     vertexs.map(v => v._2 -> v._1).toMap
-    val vertexMap : Map[Set[Variable], VertexId] = vertexs.map(v => v._2.scope() -> v._1).toMap
+    val vertexMap : Map[Set[Variable], VertexId] = vertexs.map(v => v._2.scope -> v._1).toMap
     // generate edges as the intersection of clusters
     val newEdges = edges.map({
       case (set1, set2) => Edge(vertexMap(set1), vertexMap(set2), set1.intersect(set2))

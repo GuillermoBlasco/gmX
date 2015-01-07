@@ -1,6 +1,5 @@
 package com.blackbox.gmx.model
 
-import com.blackbox.gmx.model.{Factor, Variable}
 import org.junit.runner.RunWith
 import org.scalatest.FlatSpec
 import org.scalatest.junit.JUnitRunner
