@@ -1,7 +1,7 @@
-package com.blackbox.gmx.model
+package edu.ub.guillermoblascojimenez.gmx.model
 
-import scala.collection.mutable
 import scala.collection.immutable._
+import scala.collection.mutable
 import scala.util.control.Breaks._
 
 /**
@@ -47,8 +47,8 @@ protected object AbstractArrayFactor {
   def computeStrides(variables: Set[Variable]) : Map[Variable, Int] = {
     val strides: mutable.HashMap[Variable, Int] = mutable.HashMap[Variable, Int]()
     var stride = 1
-    // Variables are arranged to strides with no order. If we would like to arrange them to strides in some
-    // particular order here we should take the set to an ordered list and iterate over it.
+    // Variables are arranged to strides with default order since Variables
+    // are comparable objects
     val sortedVariables: List[Variable] = variables.toList.sorted
     sortedVariables foreach { case (v) =>
       strides(v) = stride

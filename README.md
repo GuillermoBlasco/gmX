@@ -41,13 +41,13 @@ Second passing a cluster graph definition:
 
     ClusterGraph.apply(clusters: Map[Set[Variable], Set[Factor]], edges: Set[(Set[Variable], Set[Variable])], sc: SparkContext)
     
-You can find in `com.blackbox.gmx.impl.BeliefPropagationTest` class some examples where the graph
+You can find in `edu.ub.guillermoblascojimenez.gmx.impl.BeliefPropagationTest` class some examples where the graph
 is built this way.
 
 Then you can calibrate the cluster graph with the method `calibrated` and you'll get in return
 a cluster graph with equal topology but the vertices shall be calibrated.
 
-The `com.blackbox.gmx.model` package contains the model classes required to build a cluster graph:
+The `edu.ub.guillermoblascojimenez.gmx.model` package contains the model classes required to build a cluster graph:
 
 * `Factor`
 

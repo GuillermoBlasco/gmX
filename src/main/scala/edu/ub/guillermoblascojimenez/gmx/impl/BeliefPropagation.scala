@@ -1,8 +1,9 @@
-package com.blackbox.gmx.impl
+package edu.ub.guillermoblascojimenez.gmx.impl
 
-import com.blackbox.gmx.model.{Variable, Factor}
-import org.apache.spark.graphx._
+import edu.ub.guillermoblascojimenez.gmx.model.{Variable, Factor}
 import org.apache.spark.Logging
+import org.apache.spark.graphx.Graph
+
 
 /*
  * Ref: Probabilistic Graphical Models, Daphne Koller and Nir Friedman, Algorithm 11.1 (page 397)

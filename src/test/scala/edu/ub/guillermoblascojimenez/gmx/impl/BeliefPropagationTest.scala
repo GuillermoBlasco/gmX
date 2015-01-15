@@ -1,7 +1,7 @@
-package com.blackbox.gmx.impl
+package edu.ub.guillermoblascojimenez.gmx.impl
 
-import com.blackbox.gmx.ClusterGraph
-import com.blackbox.gmx.model.{Factor, Variable}
+import edu.ub.guillermoblascojimenez.gmx.ClusterGraph
+import edu.ub.guillermoblascojimenez.gmx.model.{Factor, Variable}
 import org.apache.spark.{SparkContext, SparkConf}
 import org.junit.runner.RunWith
 import org.scalatest.FlatSpec

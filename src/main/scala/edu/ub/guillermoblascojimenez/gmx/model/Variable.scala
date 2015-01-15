@@ -1,4 +1,4 @@
-package com.blackbox.gmx.model
+package edu.ub.guillermoblascojimenez.gmx.model
 
 /**
  * Variable of a factor. Represents a discrete value with a unique id and a cardinality.

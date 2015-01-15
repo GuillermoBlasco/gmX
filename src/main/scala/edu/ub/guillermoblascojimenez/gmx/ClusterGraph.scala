@@ -1,7 +1,7 @@
-package com.blackbox.gmx
+package edu.ub.guillermoblascojimenez.gmx
 
-import com.blackbox.gmx.impl.ClusterGraphImpl
-import com.blackbox.gmx.model._
+import edu.ub.guillermoblascojimenez.gmx.impl.ClusterGraphImpl
+import edu.ub.guillermoblascojimenez.gmx.model._
 import org.apache.spark.SparkContext
 import org.apache.spark.graphx.Graph
 

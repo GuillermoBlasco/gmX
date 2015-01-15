@@ -1,4 +1,4 @@
-package com.blackbox.gmx.model
+package edu.ub.guillermoblascojimenez.gmx.model
 
 /**
  * Created by guillermoblascojimenez on 28/09/14.

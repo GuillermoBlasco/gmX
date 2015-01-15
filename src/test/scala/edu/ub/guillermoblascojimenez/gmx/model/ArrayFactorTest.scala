@@ -1,4 +1,4 @@
-package com.blackbox.gmx.model
+package edu.ub.guillermoblascojimenez.gmx.model
 
 import org.junit.runner.RunWith
 import org.scalatest.FlatSpec

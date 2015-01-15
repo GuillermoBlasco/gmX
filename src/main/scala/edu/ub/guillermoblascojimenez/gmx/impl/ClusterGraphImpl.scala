@@ -1,11 +1,12 @@
-package com.blackbox.gmx.impl
+package edu.ub.guillermoblascojimenez.gmx.impl
+
+import edu.ub.guillermoblascojimenez.gmx.model.{Variable, Factor}
+import edu.ub.guillermoblascojimenez.gmx.ClusterGraph
+import org.apache.spark.SparkContext
+import org.apache.spark.graphx.{Edge, VertexId, Graph}
+import org.apache.spark.rdd.RDD
 
 import scala.collection.mutable
-import com.blackbox.gmx.ClusterGraph
-import com.blackbox.gmx.model.{Variable, Factor}
-import org.apache.spark.SparkContext
-import org.apache.spark.graphx._
-import org.apache.spark.rdd.RDD
 
 /**
  * Implements a cluster graph structure where vertex are set of variables and a factor with this scope

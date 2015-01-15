@@ -1,4 +1,4 @@
-package com.blackbox.gmx.model
+package edu.ub.guillermoblascojimenez.gmx.model
 
 /**
  * Factor trait that defines the operations of a function over a finite set of variables. The factors are mutable

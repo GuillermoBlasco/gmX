@@ -1,4 +1,5 @@
-package com.blackbox.gmx.model
+package edu.ub.guillermoblascojimenez.gmx.model
+
 
 import scala.collection.immutable
 
