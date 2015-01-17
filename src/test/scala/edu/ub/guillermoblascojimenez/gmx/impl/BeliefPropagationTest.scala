@@ -59,11 +59,11 @@ class BeliefPropagationTest extends FlatSpec {
      val clusterGraph = ClusterGraph(clusters, edges, sc)
      val calibrated = clusterGraph.calibrated(100, 0.00000001)
 
-     assert (Set(a, b, c) equals calibrated.variables)
+     assert (Set(a, b, c) equals calibrated.variables())
 
-     var psi1 = calibrated.factors.find(factor => phi1.scope.equals(factor.scope)).get
-     var psi2 = calibrated.factors.find(factor => phi2.scope.equals(factor.scope)).get
-     var psi3 = calibrated.factors.find(factor => phi3.scope.equals(factor.scope)).get
+     var psi1 = calibrated.factors().find(factor => phi1.scope.equals(factor.scope)).get
+     var psi2 = calibrated.factors().find(factor => phi2.scope.equals(factor.scope)).get
+     var psi3 = calibrated.factors().find(factor => phi3.scope.equals(factor.scope)).get
 
      assert (psi1 != null)
      assert (psi2 != null)
@@ -140,14 +140,14 @@ class BeliefPropagationTest extends FlatSpec {
     val clusterGraph = ClusterGraph(clusters, edges, sc)
     val calibrated = clusterGraph.calibrated(100, 0.0000001)
 
-    assert (Set(a, b, c, d, e) equals calibrated.variables)
+    assert (Set(a, b, c, d, e) equals calibrated.variables())
 
-    var psi1 = calibrated.factors.find(factor => phi1.scope.equals(factor.scope)).get
-    var psi2 = calibrated.factors.find(factor => phi2.scope.equals(factor.scope)).get
-    var psi3 = calibrated.factors.find(factor => phi3.scope.equals(factor.scope)).get
-    var psi4 = calibrated.factors.find(factor => phi4.scope.equals(factor.scope)).get
-    var psi5 = calibrated.factors.find(factor => phi5.scope.equals(factor.scope)).get
-    var psi6 = calibrated.factors.find(factor => phi6.scope.equals(factor.scope)).get
+    var psi1 = calibrated.factors().find(factor => phi1.scope.equals(factor.scope)).get
+    var psi2 = calibrated.factors().find(factor => phi2.scope.equals(factor.scope)).get
+    var psi3 = calibrated.factors().find(factor => phi3.scope.equals(factor.scope)).get
+    var psi4 = calibrated.factors().find(factor => phi4.scope.equals(factor.scope)).get
+    var psi5 = calibrated.factors().find(factor => phi5.scope.equals(factor.scope)).get
+    var psi6 = calibrated.factors().find(factor => phi6.scope.equals(factor.scope)).get
 
     assert (psi1 != null)
     assert (psi2 != null)

@@ -14,31 +14,14 @@ object BeliefPropagation extends Logging {
    * Additional structure for BP
    */
 
-  private class BPVertex (val factor: Factor, val potential: Factor) extends java.io.Serializable {
+  private class BPVertex (val factor: Factor, val incomingMessages: Factor) extends java.io.Serializable {
+
+    def potential() : Factor = factor * incomingMessages
 
   }
   private object BPVertex {
     def apply(factor:Factor) : BPVertex = apply(factor.copy(), Factor.uniform(factor.scope))
     def apply(factor:Factor, potential: Factor) : BPVertex = new BPVertex(factor.copy(), potential.copy())
-  }
-
-  /*
-   * Support methods for BP
-   */
-
-  // complete the vertex with incoming messages.
-  // each vertex is the original Factor and a mapping of vertex to factors that are the incoming deltas.
-  // Vertex i have the factor phi_i and a mapping j -> delta(j->i) where j takes values over the N(j)
-  private def toBPGraph
-    (graph: Graph[Factor, Set[Variable]])
-    : Graph[BPVertex, Factor] = {
-    graph.mapVertices((id, f) => BPVertex(f)).mapEdges((edge) => Factor.uniform(edge.attr))
-  }
-
-  private def toClusterGraph
-    (graph: Graph[BPVertex, Factor])
-    : Graph[Factor, Set[Variable]] = {
-    graph.mapVertices((id, v) => (v.factor * v.potential).normalized()).mapEdges((edge) => edge.attr.scope)
   }
 
   private def reduceDeltas(d1: Factor, d2: Factor) : Factor = d1 * d2
@@ -60,7 +43,10 @@ object BeliefPropagation extends Logging {
     assert(epsilon > 0.0)
 
     // deltas are set
-    var g: Graph[BPVertex, Factor] = toBPGraph(graph).cache()
+    var g: Graph[BPVertex, Factor] = graph
+      .mapVertices((id, f) => BPVertex(f))
+      .mapEdges((edge) => Factor.uniform(edge.attr))
+      .cache()
 
     var iteration: Int = 0
     var iterationError: Double = Double.PositiveInfinity
@@ -80,12 +66,13 @@ object BeliefPropagation extends Logging {
 
     } while (iteration < maxIterations && iterationError > epsilon)
 
-    val outputGraph = toClusterGraph(g).cache()
-    // materialize
-    outputGraph.vertices.count()
-    outputGraph.edges.count()
     g.unpersistVertices(blocking = false)
     g.edges.unpersist(blocking = false)
+
+    val outputGraph = g
+      .mapVertices((id, v) => v.potential().normalized())
+      .mapEdges((edge) => edge.attr.scope)
+
     outputGraph
   }
 
@@ -105,26 +92,19 @@ object BeliefPropagation extends Logging {
     // Trick: for each edge i->j set as potential j_factor * j_potential / i->j_potential and then
     // reverse all edges
     val newDeltas = g
-      // for each edge i->j compute j_factor * j_potential / i->j_potential
-      .mapTriplets((triplet) => {
-
-      val r = projection(
-        triplet.dstAttr.factor * (triplet.dstAttr.potential / triplet.attr
-          ), triplet.attr.scope)
-      r
-      })
-      // reverse so the edge j->i now contains j_factor * j_potential / i->j_potential
-      .reverse.cache()
+      .mapTriplets((triplet) => projection(triplet.dstAttr.potential() / triplet.attr, triplet.attr.scope))
+      .reverse
 
     // Compute new potentials and put them into a new graph
     // for each node i collect incoming edges and update as:
     //    i_potential := PRODUCT [j->i_potential, for j in N(i)]
-    val newPotentials = newDeltas
+    val messages = newDeltas
       .mapReduceTriplets((triplet) => Iterator((triplet.dstId, triplet.attr)), reduceDeltas)
 
+    // keep the factor and update messages
     val newG = newDeltas
-      .outerJoinVertices(g.vertices)((id, vertex, phi) => BPVertex(phi.get.factor))
-      .outerJoinVertices(newPotentials)((id, vertex, phi) => BPVertex(vertex.factor, phi.get))
+      .outerJoinVertices(g.vertices)((id, v, bpVertex) => bpVertex.get.factor)
+      .outerJoinVertices(messages)((id, factor, message) => BPVertex(factor, message.get))
 
      newG
   }

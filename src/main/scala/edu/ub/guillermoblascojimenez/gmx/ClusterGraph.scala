@@ -17,10 +17,10 @@ abstract class ClusterGraph protected () extends Serializable {
   val graph: Graph[Factor, Set[Variable]]
 
   /** Factors contained in the graph */
-  val factors : Set[Factor]
+  def factors() : Set[Factor]
 
   /** Complete set of variables of the graph */
-  val variables : Set[Variable]
+  def variables() : Set[Variable]
 
   /** Calibrates the marginals of the graph */
   def calibrated(maxIters:Int = 10, epsilon:Double=0.1) : ClusterGraph

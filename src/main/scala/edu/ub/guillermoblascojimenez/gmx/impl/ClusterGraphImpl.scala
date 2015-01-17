@@ -19,23 +19,24 @@ class ClusterGraphImpl(
                         ) extends ClusterGraph {
 
   def this() = this(null)
-  override val factors: Set[Factor] = graph.vertices.collect().map(vertex => vertex._2).toSet
 
-  override val variables: Set[Variable] =
-    factors.map(factor => factor.scope).aggregate[Set[Variable]](Set())(_ ++ _, _ ++ _)
+  override def factors(): Set[Factor] = graph.vertices.collect().map(vertex => vertex._2).toSet
+
+  override def variables(): Set[Variable] =
+    factors().map(factor => factor.scope).aggregate[Set[Variable]](Set())(_ ++ _, _ ++ _)
 
   override def calibrated(maxIterations :Int = 10, epsilon:Double = 0.1): ClusterGraph = {
     val g = BeliefPropagation.sum(maxIterations, epsilon)(graph)
-    new ClusterGraphImpl(g).normalized()
+    new ClusterGraphImpl(g)
   }
 
   override def map(maxIterations :Int = 10, epsilon:Double = 0.1): ClusterGraph = {
     val g = BeliefPropagation.max(maxIterations, epsilon)(graph)
-    new ClusterGraphImpl(g).normalized()
+    new ClusterGraphImpl(g)
   }
 
   override def normalized() : ClusterGraph = {
-    val g = graph.mapVertices[Factor]((id, f) => f.normalized()).cache()
+    val g = graph.mapVertices[Factor]((id, f) => f.normalized())
     new ClusterGraphImpl(g)
   }
 
