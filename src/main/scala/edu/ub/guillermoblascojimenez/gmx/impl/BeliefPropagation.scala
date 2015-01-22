@@ -46,14 +46,13 @@ object BeliefPropagation extends Logging {
    * Additional structure for BP
    */
 
-  private class BPVertex (val factor: Factor, val incomingMessages: Factor) extends java.io.Serializable {
-
-    def potential() : Factor = factor * incomingMessages
+  private class BPVertex (val potential: Factor, val belief: Factor) extends java.io.Serializable {
 
   }
+
   private object BPVertex {
-    def apply(factor:Factor) : BPVertex = apply(factor.copy(), Factor.uniform(factor.scope))
-    def apply(factor:Factor, potential: Factor) : BPVertex = new BPVertex(factor.copy(), potential.copy())
+    def apply(potential:Factor) : BPVertex = apply(potential, potential)
+    def apply(potential:Factor, belief: Factor) : BPVertex = new BPVertex(potential, belief)
   }
 
   private def reduceDeltas(d1: Factor, d2: Factor) : Factor = d1 * d2
@@ -102,7 +101,7 @@ object BeliefPropagation extends Logging {
     g.edges.unpersist(blocking = false)
 
     val outputGraph = g
-      .mapVertices((id, v) => v.potential().normalized())
+      .mapVertices((id, v) => v.belief.normalized())
       .mapEdges((edge) => edge.attr.scope)
 
     outputGraph
@@ -123,7 +122,7 @@ object BeliefPropagation extends Logging {
     // Trick: for each edge i->j set as potential j_factor * j_potential / i->j_potential and then
     // reverse all edges
     val newDeltas = g
-      .mapTriplets((triplet) => projection(triplet.dstAttr.potential() / triplet.attr, triplet.attr.scope))
+      .mapTriplets((triplet) => projection(triplet.dstAttr.belief / triplet.attr, triplet.attr.scope))
       .reverse
 
     // Compute new potentials and put them into a new graph
@@ -134,8 +133,8 @@ object BeliefPropagation extends Logging {
 
     // keep the factor and update messages
     val newG = newDeltas
-      .outerJoinVertices(g.vertices)((id, v, bpVertex) => bpVertex.get.factor)
-      .outerJoinVertices(messages)((id, factor, message) => BPVertex(factor, message.get))
+      .outerJoinVertices(g.vertices)((id, v, bpVertex) => bpVertex.get.potential)
+      .outerJoinVertices(messages)((id, potential, messages) => BPVertex(potential, potential * messages.get))
 
      newG
   }
