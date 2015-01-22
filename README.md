@@ -2,7 +2,7 @@
 
 gmX is a library built on top of Spark GraphX that implements Belief Propagation algorithm.
 
-## License
+# License
 
 Copyright (c) 2015, University of Barcelona
 All rights reserved.
@@ -33,15 +33,21 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 THE POSSIBILITY OF SUCH DAMAGE.
 
-## Requirements
+# Requirements
 
 * `scala 2.10.4`
 
 * `maven > 3.0.4`
 
-## Usage
+# Tests
 
-### Integration as dependency
+To run tests, simply execute maven test goal:
+
+    mvn test
+
+# Usage
+
+## Integration as dependency
 
 gmX can be included as dependency in your scala Spark project via maven:
 
@@ -61,7 +67,7 @@ The jar can be obtained in `target/` directory after execute the maven goal `pac
 
     mvn package
     
-### Code usage
+## Code usage
 
 In order to use gmX you have to define a cluster graph. Here you have two chances. First passing
 a set of factors that builds a Bethe cluster graph:
@@ -85,11 +91,3 @@ The `edu.ub.guillermoblascojimenez.gmx.model` package contains the model classes
 * `Variable`
 
 Look at test to see some examples of usage of these classes.
-    
-# Execution
-
-Ensure that `SPARK_HOME` is set to spark home. Execute in console:
-
-    $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.Sprinkler" --master local[1] target/gmx-core-1.0.0-SNAPSHOT.jar
-    $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.StudentTree" --master local[4] target/gmx-core-1.0.0-SNAPSHOT.jar
-    $SPARK_HOME/bin/spark-submit --class "com.blackbox.gmx.example.SmallMarkov" --master local[4] target/gmx-core-1.0.0-SNAPSHOT.jar
